@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { usePortfolioStore } from "@/store/portfolio.store"
 import { useTransactionStore } from "@/store/transaction.store"
 import { PortfolioChart } from "./portfolio-chart"
@@ -9,8 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AssetCategory } from "@/types/portfolio.types"
 
 export function PreciousMetalsTab() {
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const { items } = usePortfolioStore()
-  const { transactions } = useTransactionStore()
+  const { transactions, refreshTransactions } = useTransactionStore()
 
   const filteredItems = items.filter(item => item.category === AssetCategory.PRECIOUS_METALS)
   const filteredTransactions = transactions.filter(t => t.category === AssetCategory.PRECIOUS_METALS)
@@ -40,11 +42,23 @@ export function PreciousMetalsTab() {
           </CardContent>
         </Card>
         <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TransactionsTable transactions={filteredTransactions.slice(0, 5)} currency="TRY" />
+          <CardContent className="pt-6">
+            <TransactionsTable 
+              transactions={filteredTransactions.slice(0, 5)} 
+              currency="TRY"
+              onRefresh={async () => {
+                setIsRefreshing(true)
+                try {
+                  const { auth } = await import("@/lib/firebase")
+                  if (auth.currentUser) {
+                    await refreshTransactions(auth.currentUser.uid, AssetCategory.PRECIOUS_METALS)
+                  }
+                } finally {
+                  setIsRefreshing(false)
+                }
+              }}
+              isRefreshing={isRefreshing}
+            />
           </CardContent>
         </Card>
       </div>

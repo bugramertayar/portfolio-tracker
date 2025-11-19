@@ -37,8 +37,8 @@ import { AssetCategory } from "@/types/portfolio.types"
 const formSchema = z.object({
   type: z.enum(["BUY", "SELL"]),
   symbol: z.string().min(1, "Asset is required"),
-  quantity: z.coerce.number().min(0.000001, "Quantity must be greater than 0"),
-  price: z.coerce.number().min(0, "Price must be positive"),
+  quantity: z.string().min(1, "Quantity is required"),
+  price: z.string().min(1, "Price is required"),
   date: z.date(),
 })
 
@@ -51,8 +51,8 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
     defaultValues: {
       type: "BUY",
       symbol: "",
-      quantity: 0,
-      price: 0,
+      quantity: "",
+      price: "",
       date: new Date(),
     },
   })
@@ -65,14 +65,28 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         return
       }
 
+      // Parse and validate numeric inputs
+      const quantity = parseFloat(values.quantity);
+      const price = parseFloat(values.price);
+
+      if (isNaN(quantity) || quantity <= 0) {
+        toast.error("Quantity must be a valid number greater than 0");
+        return;
+      }
+
+      if (isNaN(price) || price <= 0) {
+        toast.error("Price must be a valid number greater than 0");
+        return;
+      }
+
       const transactionData = {
         userId,
         assetId: values.symbol,
         symbol: values.symbol,
         type: values.type,
-        quantity: values.quantity,
-        price: values.price,
-        total: values.quantity * values.price,
+        quantity,
+        price,
+        total: quantity * price,
         category: selectedAsset.category,
         date: values.date.getTime(),
       }
@@ -164,7 +178,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                 <FormItem>
                   <FormLabel>Quantity</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" {...field} />
+                    <Input type="number" step="any" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -177,7 +191,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                 <FormItem>
                   <FormLabel>Price per Share</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" {...field} />
+                    <Input type="number" step="any" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,6 +1,6 @@
 "use client"
 
-
+import { useState } from "react"
 import { usePortfolioStore } from "@/store/portfolio.store"
 import { useTransactionStore } from "@/store/transaction.store"
 import { PortfolioChart } from "./portfolio-chart"
@@ -11,8 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { calculateDistribution } from "@/lib/calculations"
 
 export function TotalPortfolioTab() {
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const { items, summary, isLoading: isPortfolioLoading } = usePortfolioStore()
-  const { transactions, isLoading: isTransactionsLoading } = useTransactionStore()
+  const { transactions, isLoading: isTransactionsLoading, refreshTransactions } = useTransactionStore()
 
   if (isPortfolioLoading || isTransactionsLoading) {
     return <div>Loading...</div>
@@ -50,11 +51,24 @@ export function TotalPortfolioTab() {
           </CardContent>
         </Card>
         <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TransactionsTable transactions={transactions.slice(0, 5)} currency="TRY" />
+          <CardContent className="pt-6">
+            <TransactionsTable 
+              transactions={transactions.slice(0, 5)} 
+              currency="TRY"
+              onRefresh={async () => {
+                setIsRefreshing(true)
+                try {
+                  // Get userId from auth context or props
+                  const { auth } = await import("@/lib/firebase")
+                  if (auth.currentUser) {
+                  await refreshTransactions(auth.currentUser.uid)
+                  }
+                } finally {
+                  setIsRefreshing(false)
+                }
+              }}
+              isRefreshing={isRefreshing}
+            />
           </CardContent>
         </Card>
       </div>

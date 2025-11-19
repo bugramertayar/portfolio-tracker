@@ -53,8 +53,8 @@ import { toast } from "sonner"
 const formSchema = z.object({
   category: z.nativeEnum(AssetCategory),
   symbol: z.string().min(1, "Symbol is required"),
-  quantity: z.coerce.number().min(0.000001, "Quantity must be greater than 0"),
-  price: z.coerce.number().min(0, "Price must be positive"),
+  quantity: z.string().min(1, "Quantity is required"),
+  price: z.string().min(1, "Price is required"),
 })
 
 export function AddAssetDialog({ userId }: { userId: string }) {
@@ -70,8 +70,8 @@ export function AddAssetDialog({ userId }: { userId: string }) {
     defaultValues: {
       category: AssetCategory.BIST100,
       symbol: "",
-      quantity: 0,
-      price: 0,
+      quantity: "",
+      price: "",
     },
   })
 
@@ -87,38 +87,31 @@ export function AddAssetDialog({ userId }: { userId: string }) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // We need userId. For now assuming we can get it or it's passed.
-      // Actually stores usually need userId.
-      // Let's assume we have a way to get userId, or we pass it.
-      // For this implementation, I'll assume a hardcoded userId or context if not available.
-      // But wait, the stores take userId as argument for fetch, but addTransaction in store doesn't take userId?
-      // In transaction.store.ts: addTransaction: (transaction: Transaction) => void;
-      // But that's optimistic update. The actual API call is in firestore service.
-      // The store should probably handle the API call to be consistent.
-      // But the plan said "Integration with Firestore service" in the dialog.
-      
-      // Let's use FirestoreService directly or via a store action if available.
-      // The store only has `addTransaction` which updates state, not DB.
-      // So we should call FirestoreService.addTransaction then update store.
-      
-      // userId is passed as prop
+      // Parse and validate numeric inputs
+      const quantity = parseFloat(values.quantity);
+      const price = parseFloat(values.price);
+
+      if (isNaN(quantity) || quantity <= 0) {
+        toast.error("Quantity must be a valid number greater than 0");
+        return;
+      }
+
+      if (isNaN(price) || price <= 0) {
+        toast.error("Price must be a valid number greater than 0");
+        return;
+      }
 
       const transactionData = {
         userId,
-        assetId: values.symbol, // Using symbol as ID for now
+        assetId: values.symbol,
         symbol: values.symbol,
         type: 'BUY' as const,
-        quantity: values.quantity,
-        price: values.price,
-        total: values.quantity * values.price,
+        quantity,
+        price,
+        total: quantity * price,
         category: values.category,
       }
 
-      // We need to import FirestoreService. 
-      // Since I can't import it easily if it's not exported or if I want to keep logic in components?
-      // Better to use a Server Action for writing?
-      // FirestoreService is client-side compatible (firebase/firestore).
-      
       const { FirestoreService } = await import("@/lib/firestore.service");
       await FirestoreService.addTransaction(userId, transactionData);
       
@@ -232,7 +225,7 @@ export function AddAssetDialog({ userId }: { userId: string }) {
                 <FormItem>
                   <FormLabel>Quantity</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" {...field} />
+                    <Input type="number" step="any" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -245,7 +238,7 @@ export function AddAssetDialog({ userId }: { userId: string }) {
                 <FormItem>
                   <FormLabel>Price per Share</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" {...field} />
+                    <Input type="number" step="any" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
