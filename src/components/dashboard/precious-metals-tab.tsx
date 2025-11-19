@@ -29,6 +29,7 @@ export function PreciousMetalsTab() {
           data={chartData} 
           title="Precious Metals Allocation" 
           currency="TRY"
+          className="col-span-7"
         />
       </div>
 

@@ -7,7 +7,7 @@ import { UsMarketsTab } from "./us-markets-tab"
 import { PreciousMetalsTab } from "./precious-metals-tab"
 import { LayoutDashboard, TrendingUp, Globe, Coins } from "lucide-react"
 
-export function DashboardTabs() {
+export function DashboardTabs({ userId }: { userId: string }) {
   return (
     <Tabs defaultValue="total" className="space-y-4">
       <TabsList className="grid w-full grid-cols-4 h-auto">
@@ -29,7 +29,7 @@ export function DashboardTabs() {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="total" className="space-y-4">
-        <TotalPortfolioTab />
+        <TotalPortfolioTab userId={userId} />
       </TabsContent>
       <TabsContent value="bist100" className="space-y-4">
         <Bist100Tab />

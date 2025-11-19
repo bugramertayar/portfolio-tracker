@@ -29,6 +29,7 @@ export function UsMarketsTab() {
           data={chartData} 
           title="US Markets Allocation" 
           currency="USD"
+          className="col-span-7"
         />
       </div>
 

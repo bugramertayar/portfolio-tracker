@@ -1,7 +1,7 @@
 import { PortfolioItem, AssetCategory } from "@/types/portfolio.types";
 
 export const calculatePortfolioTotal = (items: PortfolioItem[]) => {
-  return items.reduce((total, item) => total + (item.currentValue || 0), 0);
+  return items.reduce((total, item) => total + (item.currentValueTRY || item.currentValue || 0), 0);
 };
 
 export const calculateProfitLoss = (currentValue: number, totalCost: number) => {
@@ -25,7 +25,7 @@ export const calculateDistribution = (items: PortfolioItem[]) => {
   const distribution: Record<string, number> = {};
   
   items.forEach(item => {
-    const itemValue = item.currentValue || 0;
+    const itemValue = item.currentValueTRY || item.currentValue || 0;
     distribution[item.category] = (distribution[item.category] || 0) + itemValue;
   });
 

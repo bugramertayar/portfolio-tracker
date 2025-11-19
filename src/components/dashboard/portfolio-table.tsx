@@ -97,11 +97,11 @@ export function PortfolioTable({ items, currency = 'TRY' }: PortfolioTableProps)
                 <TableCell className="font-medium">{item.symbol}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.quantity}</TableCell>
-                <TableCell>{formatCurrency(item.averageCost, currency)}</TableCell>
-                <TableCell>{formatCurrency(item.currentPrice || 0, currency)}</TableCell>
-                <TableCell>{formatCurrency(item.currentValue || 0, currency)}</TableCell>
+                <TableCell>{formatCurrency(item.averageCost, item.currency || currency)}</TableCell>
+                <TableCell>{formatCurrency(item.currentPrice || 0, item.currency || currency)}</TableCell>
+                <TableCell>{formatCurrency(item.currentValue || 0, item.currency || currency)}</TableCell>
                 <TableCell className={item.profit && item.profit >= 0 ? "text-green-600" : "text-red-600"}>
-                  {formatCurrency(item.profit || 0, currency)}
+                  {formatCurrency(item.profit || 0, item.currency || currency)}
                 </TableCell>
                 <TableCell className={item.profitPercentage && item.profitPercentage >= 0 ? "text-green-600" : "text-red-600"}>
                   {formatPercentage(item.profitPercentage || 0)}

@@ -11,6 +11,7 @@ interface PortfolioState {
   
   fetchPortfolio: (userId: string) => Promise<void>;
   refreshPrices: () => Promise<void>;
+  exchangeRate: number;
 }
 
 const initialSummary: PortfolioSummary = {
@@ -46,6 +47,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   isLoading: false,
   error: null,
   summary: initialSummary,
+  exchangeRate: 0,
 
   fetchPortfolio: async (userId: string) => {
     set({ isLoading: true, error: null });
@@ -69,6 +71,9 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
 
     try {
       const symbols = items.map(item => item.symbol);
+      // Add TRY=X to fetch USD/TRY exchange rate
+      symbols.push('TRY=X');
+      
       const response = await getQuotesAction(symbols);
 
       if (!response.success || !response.data) {
@@ -76,6 +81,8 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
       }
 
       const prices = response.data;
+      const exchangeRate = prices['TRY=X'] || 0;
+      set({ exchangeRate });
       
       // Update items with new prices and calculate values
       const updatedItems = items.map(item => {
@@ -83,6 +90,14 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         const currentValue = item.quantity * currentPrice;
         const profit = currentValue - item.totalCost;
         const profitPercentage = item.totalCost > 0 ? (profit / item.totalCost) * 100 : 0;
+        
+        let currency: 'TRY' | 'USD' = 'TRY';
+        let currentValueTRY = currentValue;
+
+        if (item.category === AssetCategory.US_MARKETS) {
+          currency = 'USD';
+          currentValueTRY = currentValue * exchangeRate;
+        }
 
         return {
           ...item,
@@ -90,7 +105,9 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
           currentValue,
           profit,
           profitPercentage,
-          updatedAt: Date.now()
+          updatedAt: Date.now(),
+          currency,
+          currentValueTRY
         };
       });
 
@@ -113,7 +130,18 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
           summary.usMarket.totalProfit += item.profit || 0;
           
           // Note: US Market is in USD, not adding to Total TRY directly without conversion
-          // For now, keeping them separate as per plan
+          // Now we convert using the calculated currentValueTRY
+          summary.totalValueTRY += item.currentValueTRY || 0;
+          // For cost, we might need historical exchange rate but for now let's assume we want current value in TRY
+          // Ideally cost should be stored in TRY or converted. 
+          // If we bought in USD, cost is USD. To show total portfolio cost in TRY, we need conversion.
+          // For simplicity and "Total Value" focus, we use current exchange rate for cost conversion too 
+          // OR we just don't add cost to Total TRY if we want to be strict.
+          // But user wants "Total" tab to show everything.
+          summary.totalCostTRY += item.totalCost * (item.category === AssetCategory.US_MARKETS ? exchangeRate : 1);
+          
+          // Profit in TRY
+          summary.totalProfitTRY += (item.currentValueTRY || 0) - (item.totalCost * (item.category === AssetCategory.US_MARKETS ? exchangeRate : 1));
         } else if (item.category === AssetCategory.PRECIOUS_METALS) {
           summary.preciousMetals.totalValue += item.currentValue || 0;
           summary.preciousMetals.totalCost += item.totalCost;

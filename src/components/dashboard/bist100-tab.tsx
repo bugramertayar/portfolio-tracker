@@ -30,6 +30,7 @@ export function Bist100Tab() {
           data={chartData} 
           title="BIST 100 Allocation" 
           currency="TRY"
+          className="col-span-7"
         />
       </div>
 

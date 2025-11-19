@@ -41,6 +41,8 @@ export interface PortfolioItem {
   profitPercentage?: number;
   category: AssetCategory;
   updatedAt?: number; // Added
+  currency?: 'TRY' | 'USD';
+  currentValueTRY?: number;
 }
 
 export interface CategorySummary {

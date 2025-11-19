@@ -14,34 +14,41 @@ import { formatCurrency, formatDate } from "@/lib/formatters"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
+import { AddTransactionDialog } from "./add-transaction-dialog"
+
 interface TransactionsTableProps {
   transactions: Transaction[]
   currency?: 'TRY' | 'USD'
   onRefresh?: () => void
   isRefreshing?: boolean
+  userId?: string
 }
 
 export function TransactionsTable({ 
   transactions, 
   currency = 'TRY',
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  userId
 }: TransactionsTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Recent Transactions</h3>
-        {onRefresh && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="h-8 w-8 p-0"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-        )}
+        <div className="flex items-center space-x-2">
+          {userId && <AddTransactionDialog userId={userId} />}
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="h-8 w-8 p-0"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          )}
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -73,8 +80,8 @@ export function TransactionsTable({
                   </TableCell>
                   <TableCell className="font-medium">{transaction.symbol}</TableCell>
                   <TableCell>{transaction.quantity}</TableCell>
-                  <TableCell>{formatCurrency(transaction.price, currency)}</TableCell>
-                  <TableCell>{formatCurrency(transaction.total || (transaction.price * transaction.quantity), currency)}</TableCell>
+                  <TableCell>{formatCurrency(transaction.price, transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
+                  <TableCell>{formatCurrency(transaction.total || (transaction.price * transaction.quantity), transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
                 </TableRow>
               ))
             )}

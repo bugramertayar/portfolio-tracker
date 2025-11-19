@@ -2,6 +2,7 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import { formatCurrency } from "@/lib/formatters"
 
 interface PortfolioChartProps {
@@ -12,11 +13,13 @@ interface PortfolioChartProps {
   }[]
   title?: string
   currency?: 'TRY' | 'USD'
+  valueType?: 'currency' | 'percentage'
+  className?: string
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#a4de6c', '#d0ed57']
 
-export function PortfolioChart({ data, title = "Portfolio Distribution", currency = 'TRY' }: PortfolioChartProps) {
+export function PortfolioChart({ data, title = "Portfolio Distribution", currency = 'TRY', valueType = 'currency', className }: PortfolioChartProps) {
   const chartData = data.map((item, index) => ({
     ...item,
     fill: item.color || COLORS[index % COLORS.length]
@@ -24,7 +27,7 @@ export function PortfolioChart({ data, title = "Portfolio Distribution", currenc
 
   if (data.length === 0) {
     return (
-      <Card className="col-span-4">
+      <Card className={cn("col-span-4", className)}>
         <CardHeader>
           <CardTitle>{title}</CardTitle>
         </CardHeader>
@@ -36,7 +39,7 @@ export function PortfolioChart({ data, title = "Portfolio Distribution", currenc
   }
 
   return (
-    <Card className="col-span-4">
+    <Card className={cn("col-span-4", className)}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
@@ -58,7 +61,7 @@ export function PortfolioChart({ data, title = "Portfolio Distribution", currenc
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: number) => formatCurrency(value, currency)}
+                formatter={(value: number) => valueType === 'percentage' ? `${value.toFixed(2)}%` : formatCurrency(value, currency)}
               />
               <Legend />
             </PieChart>

@@ -10,7 +10,9 @@ import { SummaryCards } from "./summary-cards"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { calculateDistribution } from "@/lib/calculations"
 
-export function TotalPortfolioTab() {
+import { AddAssetDialog } from "./add-asset-dialog"
+
+export function TotalPortfolioTab({ userId }: { userId: string }) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { items, summary, isLoading: isPortfolioLoading } = usePortfolioStore()
   const { transactions, isLoading: isTransactionsLoading, refreshTransactions } = useTransactionStore()
@@ -38,13 +40,16 @@ export function TotalPortfolioTab() {
           data={chartData} 
           title="Portfolio Distribution by Category" 
           currency="TRY" // Total is in TRY
+          valueType="percentage"
+          className="col-span-7"
         />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Holdings</CardTitle>
+            <AddAssetDialog userId={userId} />
           </CardHeader>
           <CardContent>
             <PortfolioTable items={items} currency="TRY" />
@@ -55,6 +60,7 @@ export function TotalPortfolioTab() {
             <TransactionsTable 
               transactions={transactions.slice(0, 5)} 
               currency="TRY"
+              userId={userId}
               onRefresh={async () => {
                 setIsRefreshing(true)
                 try {
