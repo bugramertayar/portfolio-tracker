@@ -9,6 +9,7 @@ import { TransactionsTable } from "./transactions-table"
 import { SummaryCards } from "./summary-cards"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { calculateDistribution } from "@/lib/calculations"
+import { AssetCategory } from "@/types/portfolio.types"
 
 import { AddAssetDialog } from "./add-asset-dialog"
 
@@ -31,17 +32,45 @@ export function TotalPortfolioTab({ userId }: { userId: string }) {
     value
   }))
 
+  const activeCategories = [
+    AssetCategory.BIST100,
+    AssetCategory.US_MARKETS,
+    AssetCategory.PRECIOUS_METALS
+  ].filter(category => items.some(item => item.category === category))
+
   return (
     <div className="space-y-4">
       <SummaryCards summary={summary} />
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className={`grid gap-4 grid-cols-1 ${
+        activeCategories.length + 1 === 2 ? 'lg:grid-cols-2' :
+        activeCategories.length + 1 === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
+        activeCategories.length + 1 >= 4 ? 'md:grid-cols-2 lg:grid-cols-4' : ''
+      }`}>
+        {/* Individual Category Charts */}
+        {activeCategories.map(category => (
+          <PortfolioChart 
+            key={category}
+            data={items
+              .filter(item => item.category === category)
+              .map(item => ({ name: item.symbol, value: item.currentValue || 0 }))}
+            title={`${
+              category === AssetCategory.BIST100 ? 'BIST 100' : 
+              category === AssetCategory.US_MARKETS ? 'US Markets' : 
+              'Precious Metals'
+            } Distribution`}
+            currency={category === AssetCategory.US_MARKETS ? 'USD' : 'TRY'}
+            className="col-span-1"
+          />
+        ))}
+
+        {/* Total Portfolio Chart */}
         <PortfolioChart 
           data={chartData} 
           title="Portfolio Distribution by Category" 
           currency="TRY" // Total is in TRY
           valueType="percentage"
-          className="col-span-7"
+          className="col-span-1"
         />
       </div>
 
