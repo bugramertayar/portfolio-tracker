@@ -19,14 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+
 import { signUpWithEmail } from "@/lib/auth"
 
 const formSchema = z.object({
@@ -75,14 +68,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Create an account</CardTitle>
-        <CardDescription>
+    <>
+      <div className="flex flex-col space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Create an account
+        </h1>
+        <p className="text-sm text-muted-foreground">
           Enter your email below to create your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
+        </p>
+      </div>
+      <div className="grid gap-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -143,15 +138,13 @@ export default function RegisterPage() {
             </Button>
           </form>
         </Form>
-      </CardContent>
-      <CardFooter>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href="/login" className="text-primary underline-offset-4 hover:underline">
             Sign in
           </Link>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </>
   )
 }

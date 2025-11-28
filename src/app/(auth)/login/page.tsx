@@ -19,14 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+
 import { signInWithEmail, signInWithGoogle } from "@/lib/auth"
 
 const formSchema = z.object({
@@ -79,15 +72,17 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Sign in</CardTitle>
-        <CardDescription>
-          Enter your email below to sign in to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid grid-cols-1 gap-6">
+    <>
+      <div className="flex flex-col space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Welcome back
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Enter your email to sign in to your account
+        </p>
+      </div>
+      <div className="grid gap-6">
+        <div className="grid gap-2">
           <Button variant="outline" onClick={onGoogleSignIn} disabled={isLoading}>
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -111,7 +106,7 @@ export default function LoginPage() {
                 />
               </svg>
             )}
-            Google
+            Continue with Google
           </Button>
         </div>
         <div className="relative">
@@ -120,7 +115,7 @@ export default function LoginPage() {
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">
-              Or continue with
+              Or continue with email
             </span>
           </div>
         </div>
@@ -158,15 +153,13 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
-      </CardContent>
-      <CardFooter>
-        <div className="text-sm text-muted-foreground">
+        <div className="text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link href="/register" className="text-primary underline-offset-4 hover:underline">
             Sign up
           </Link>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </>
   )
 }

@@ -11,6 +11,11 @@ export function SiteHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const isDashboard = pathname === "/dashboard"
+  const isAuthPage = pathname === "/login" || pathname === "/register"
+
+  if (isAuthPage) {
+    return null
+  }
 
   const handleLogout = async () => {
     try {
