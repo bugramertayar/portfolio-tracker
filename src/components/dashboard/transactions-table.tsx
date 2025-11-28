@@ -74,13 +74,13 @@ export function TransactionsTable({
                 <TableRow key={transaction.id}>
                   <TableCell>{formatDate(transaction.date)}</TableCell>
                   <TableCell>
-                    <Badge variant={transaction.type === 'BUY' ? 'default' : 'destructive'}>
+                    <Badge variant={transaction.type === 'BUY' ? 'default' : transaction.type === 'SELL' ? 'destructive' : 'secondary'}>
                       {transaction.type}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-medium">{transaction.symbol}</TableCell>
-                  <TableCell>{transaction.quantity}</TableCell>
-                  <TableCell>{formatCurrency(transaction.price, transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
+                  <TableCell>{transaction.type === 'DIVIDEND' ? '-' : transaction.quantity}</TableCell>
+                  <TableCell>{transaction.type === 'DIVIDEND' ? '-' : formatCurrency(transaction.price, transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
                   <TableCell>{formatCurrency(transaction.total || (transaction.price * transaction.quantity), transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
                 </TableRow>
               ))

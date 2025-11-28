@@ -103,11 +103,12 @@ export const FirestoreService = {
           const currentData = portfolioDoc.data() as PortfolioItem;
           let newQuantity = currentData.quantity;
           let newTotalCost = currentData.totalCost;
+          let newTotalDividends = currentData.totalDividends || 0;
 
           if (transactionData.type === 'BUY') {
             newQuantity += transactionData.quantity;
             newTotalCost += transactionData.total;
-          } else {
+          } else if (transactionData.type === 'SELL') {
             // SELL
             if (currentData.quantity < transactionData.quantity) {
               throw new Error("Insufficient quantity to sell");
@@ -116,18 +117,24 @@ export const FirestoreService = {
             // For sell, we reduce total cost proportionally to keep average cost same
             const costPerShare = currentData.totalCost / currentData.quantity;
             newTotalCost -= (costPerShare * transactionData.quantity);
+          } else if (transactionData.type === 'DIVIDEND') {
+            newTotalDividends += transactionData.total;
           }
 
           // 4. Perform writes
           transaction.set(transactionRef, newTransaction);
           
-          if (newQuantity <= 0) {
+          if (newQuantity <= 0 && transactionData.type !== 'DIVIDEND') {
+            // Only delete if quantity is 0 AND it's not a dividend transaction (though dividend shouldn't happen on 0 quantity usually)
+            // Actually if sell makes it 0, we delete.
+            // If dividend comes, quantity doesn't change.
             transaction.delete(portfolioRef);
           } else {
             transaction.update(portfolioRef, {
               quantity: newQuantity,
               totalCost: newTotalCost,
-              averageCost: newTotalCost / newQuantity,
+              averageCost: newQuantity > 0 ? newTotalCost / newQuantity : 0,
+              totalDividends: newTotalDividends,
               updatedAt: Date.now()
             });
           }

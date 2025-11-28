@@ -16,7 +16,7 @@ export interface Transaction {
   userId: string;
   assetId: string; // Symbol or unique ID
   symbol: string;
-  type: 'BUY' | 'SELL';
+  type: 'BUY' | 'SELL' | 'DIVIDEND';
   quantity: number;
   price: number;
   total: number; // Added
@@ -34,6 +34,7 @@ export interface PortfolioItem {
   quantity: number;
   averageCost: number;
   totalCost: number; // Added
+  totalDividends?: number; // Added for dividend tracking
   currentPrice?: number;
   currentValue?: number; // Added
   totalValue?: number;

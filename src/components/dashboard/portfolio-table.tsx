@@ -19,7 +19,7 @@ interface PortfolioTableProps {
   currency?: 'TRY' | 'USD'
 }
 
-type SortField = 'symbol' | 'name' | 'quantity' | 'averageCost' | 'currentPrice' | 'currentValue' | 'profit' | 'profitPercentage'
+type SortField = 'symbol' | 'quantity' | 'averageCost' | 'currentPrice' | 'currentValue' | 'profit' | 'profitPercentage' | 'totalDividends'
 type SortDirection = 'asc' | 'desc'
 
 export function PortfolioTable({ items, currency = 'TRY' }: PortfolioTableProps) {
@@ -75,11 +75,11 @@ export function PortfolioTable({ items, currency = 'TRY' }: PortfolioTableProps)
         <TableHeader>
           <TableRow>
             <SortHeader field="symbol" label="Symbol" />
-            <SortHeader field="name" label="Name" />
             <SortHeader field="quantity" label="Quantity" />
             <SortHeader field="averageCost" label="Avg Cost" />
             <SortHeader field="currentPrice" label="Price" />
             <SortHeader field="currentValue" label="Total Value" />
+            <SortHeader field="totalDividends" label="Dividends" />
             <SortHeader field="profit" label="P/L" />
             <SortHeader field="profitPercentage" label="P/L %" />
           </TableRow>
@@ -95,11 +95,15 @@ export function PortfolioTable({ items, currency = 'TRY' }: PortfolioTableProps)
             sortedItems.map((item) => (
               <TableRow key={item.id || item.symbol}>
                 <TableCell className="font-medium">{item.symbol}</TableCell>
-                <TableCell>{item.name}</TableCell>
                 <TableCell>{item.quantity}</TableCell>
                 <TableCell>{formatCurrency(item.averageCost, item.currency || currency)}</TableCell>
                 <TableCell>{formatCurrency(item.currentPrice || 0, item.currency || currency)}</TableCell>
                 <TableCell>{formatCurrency(item.currentValue || 0, item.currency || currency)}</TableCell>
+                <TableCell className="text-green-600">
+                  {item.totalDividends && item.totalDividends > 0 
+                    ? formatCurrency(item.totalDividends, item.currency || currency) 
+                    : '-'}
+                </TableCell>
                 <TableCell className={item.profit && item.profit >= 0 ? "text-green-600" : "text-red-600"}>
                   {formatCurrency(item.profit || 0, item.currency || currency)}
                 </TableCell>

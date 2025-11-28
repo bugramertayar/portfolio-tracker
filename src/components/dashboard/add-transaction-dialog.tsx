@@ -35,12 +35,21 @@ import { toast } from "sonner"
 import { AssetCategory } from "@/types/portfolio.types"
 
 const formSchema = z.object({
-  type: z.enum(["BUY", "SELL"]),
+  type: z.enum(["BUY", "SELL", "DIVIDEND"]),
   symbol: z.string().min(1, "Asset is required"),
-  quantity: z.string().min(1, "Quantity is required"),
-  price: z.string().min(1, "Price is required"),
+  quantity: z.string().optional(),
+  price: z.string().optional(),
+  totalAmount: z.string().optional(),
   date: z.date(),
-})
+}).refine((data) => {
+  if (data.type === "DIVIDEND") {
+    return !!data.totalAmount && parseFloat(data.totalAmount) > 0;
+  }
+  return !!data.quantity && !!data.price;
+}, {
+  message: "Please fill in all required fields",
+  path: ["symbol"], // General error path
+});
 
 export function AddTransactionDialog({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false)
@@ -53,9 +62,12 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
       symbol: "",
       quantity: "",
       price: "",
+      totalAmount: "",
       date: new Date(),
     },
   })
+
+  const transactionType = form.watch("type")
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -65,18 +77,31 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         return
       }
 
-      // Parse and validate numeric inputs
-      const quantity = parseFloat(values.quantity);
-      const price = parseFloat(values.price);
+      let quantity = 0;
+      let price = 0;
+      let total = 0;
 
-      if (isNaN(quantity) || quantity <= 0) {
-        toast.error("Quantity must be a valid number greater than 0");
-        return;
-      }
+      if (values.type === "DIVIDEND") {
+        total = parseFloat(values.totalAmount || "0");
+        if (isNaN(total) || total <= 0) {
+          toast.error("Total amount must be a valid number greater than 0");
+          return;
+        }
+      } else {
+        // BUY or SELL
+        quantity = parseFloat(values.quantity || "0");
+        price = parseFloat(values.price || "0");
 
-      if (isNaN(price) || price <= 0) {
-        toast.error("Price must be a valid number greater than 0");
-        return;
+        if (isNaN(quantity) || quantity <= 0) {
+          toast.error("Quantity must be a valid number greater than 0");
+          return;
+        }
+  
+        if (isNaN(price) || price <= 0) {
+          toast.error("Price must be a valid number greater than 0");
+          return;
+        }
+        total = quantity * price;
       }
 
       const transactionData = {
@@ -86,7 +111,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         type: values.type,
         quantity,
         price,
-        total: quantity * price,
+        total,
         category: selectedAsset.category,
         date: values.date.getTime(),
       }
@@ -130,6 +155,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                     <SelectContent>
                       <SelectItem value="BUY">Buy</SelectItem>
                       <SelectItem value="SELL">Sell</SelectItem>
+                      <SelectItem value="DIVIDEND">Dividend</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -171,32 +197,52 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Quantity</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="any" placeholder="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price per Share</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="any" placeholder="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
+            {transactionType === "DIVIDEND" ? (
+              <FormField
+                control={form.control}
+                name="totalAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Dividend Amount</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="any" placeholder="0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <>
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantity</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="any" placeholder="0" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price per Share</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="any" placeholder="0" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+
             <Button type="submit" className="w-full">Add Transaction</Button>
           </form>
         </Form>
