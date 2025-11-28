@@ -23,11 +23,16 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - Currency-specific pricing
 
 ### 📈 Interactive Dashboard
-- Portfolio distribution charts with Recharts
+- Dynamic portfolio distribution charts with Recharts
+  - Total portfolio view with category breakdown
+  - Individual category distribution charts (BIST100, US Markets, Precious Metals)
 - Detailed holdings tables with current values
-- Transaction history tracking
+  - Sortable columns (default: Total Value descending)
+  - Dividend tracking per asset
+- Transaction history tracking (Buy/Sell/Dividend)
 - Summary cards showing key metrics
 - Refresh functionality for real-time updates
+- Modern interactive tooltips with percentage breakdowns
 
 ### 🎨 Modern UI/UX
 - Dark/Light theme support
@@ -125,16 +130,26 @@ A comprehensive portfolio management application built with Next.js, enabling us
 
 ### Recording Transactions
 1. Click the "Add Transaction" button
-2. Select the transaction type (Buy/Sell)
+2. Select the transaction type:
+   - **Buy**: Purchase additional shares
+   - **Sell**: Sell existing shares
+   - **Dividend**: Record dividend payments (no quantity/price needed, just total amount)
 3. Choose the asset from your portfolio
-4. Enter transaction details (quantity, price, date)
+4. Enter transaction details:
+   - For Buy/Sell: quantity, price per share, and date
+   - For Dividend: total dividend amount received and date
 5. Submit to record the transaction
 
 ### Viewing Portfolio
-- Switch between tabs to view different market portfolios
-- View portfolio distribution in the pie chart
-- Check current holdings and their values in the table
-- Review recent transactions
+- Switch between tabs to view different market portfolios (Total, BIST100, US Markets, Precious Metals)
+- View portfolio distribution in interactive pie charts:
+  - Total tab shows both category distribution and individual market breakdowns
+  - Hover over chart segments to see detailed value and percentage information
+- Check current holdings in sortable tables:
+  - Symbol, Quantity, Average Cost, Current Price, Total Value
+  - **Dividends**: Track total dividends received per asset
+  - Profit/Loss (including dividends) with percentage
+- Review recent transactions (Buy/Sell/Dividend)
 - Use the refresh button to update real-time prices
 
 ## Project Structure
@@ -201,11 +216,12 @@ portfolios/{userId}/assets/{assetId}
 **transactions** collection:
 ```
 transactions/{userId}/history/{transactionId}
-- type: 'buy' | 'sell'
+- type: 'buy' | 'sell' | 'dividend'
 - symbol: string
 - category: string
-- quantity: number
-- price: number
+- quantity: number (0 for dividend transactions)
+- price: number (0 for dividend transactions)
+- total: number (total transaction amount or dividend received)
 - date: timestamp
 - createdAt: timestamp
 ```
