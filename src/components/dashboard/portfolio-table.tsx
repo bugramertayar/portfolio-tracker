@@ -23,8 +23,8 @@ type SortField = 'symbol' | 'quantity' | 'averageCost' | 'currentPrice' | 'curre
 type SortDirection = 'asc' | 'desc'
 
 export function PortfolioTable({ items, currency = 'TRY' }: PortfolioTableProps) {
-  const [sortField, setSortField] = useState<SortField>('symbol')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [sortField, setSortField] = useState<SortField>('currentValue')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
