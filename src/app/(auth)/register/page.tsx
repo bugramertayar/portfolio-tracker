@@ -64,7 +64,7 @@ export default function RegisterPage() {
     try {
       await signUpWithEmail(values.email, values.password)
       // Ideally, we would update the user profile with the name here
-      document.cookie = "session=true; path=/"
+      document.cookie = "session=true; path=/; max-age=2592000"
       toast.success("Account created successfully")
       router.push("/dashboard")
     } catch (error: any) {

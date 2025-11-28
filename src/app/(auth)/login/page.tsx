@@ -54,7 +54,7 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       await signInWithEmail(values.email, values.password)
-      document.cookie = "session=true; path=/"
+      document.cookie = "session=true; path=/; max-age=2592000"
       toast.success("Logged in successfully")
       router.push("/dashboard")
     } catch (error: any) {
@@ -68,7 +68,7 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       await signInWithGoogle()
-      document.cookie = "session=true; path=/"
+      document.cookie = "session=true; path=/; max-age=2592000"
       toast.success("Logged in with Google")
       router.push("/dashboard")
     } catch (error: any) {
