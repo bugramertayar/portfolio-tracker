@@ -24,7 +24,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="p-4 flex items-center justify-between border-b">
+    <header className="sticky top-0 z-50 bg-background p-4 flex items-center justify-between border-b">
       <div className="flex items-center">
         {isDashboard && <h1 className="text-xl font-bold">Dashboard</h1>}
       </div>
