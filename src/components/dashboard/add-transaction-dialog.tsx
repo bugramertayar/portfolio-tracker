@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select"
 import { DatePicker } from "@/components/ui/date-picker"
 import { usePortfolioStore } from "@/store/portfolio.store"
+import { useTransactionStore } from "@/store/transaction.store"
 import { toast } from "sonner"
 import { AssetCategory } from "@/types/portfolio.types"
 
@@ -62,6 +63,7 @@ const formSchema = z.object({
 export function AddTransactionDialog({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false)
   const { items, fetchPortfolio } = usePortfolioStore()
+  const { refreshTransactions } = useTransactionStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema) as any,
@@ -139,7 +141,9 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
       const { FirestoreService } = await import("@/lib/firestore.service");
       await FirestoreService.addTransaction(userId, transactionData);
       
+      // Refresh both portfolio and transactions
       await fetchPortfolio(userId);
+      await refreshTransactions(userId);
       
       toast.success("Transaction added successfully")
       setOpen(false)
