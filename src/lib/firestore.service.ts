@@ -25,6 +25,7 @@ import {
 const USERS_COLLECTION = "users";
 const PORTFOLIOS_COLLECTION = "portfolios";
 const TRANSACTIONS_COLLECTION = "transactions";
+const QUOTES_COLLECTION = "quotes";
 
 export const FirestoreService = {
   // Portfolio Operations
@@ -192,6 +193,39 @@ export const FirestoreService = {
       return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
     } catch (error) {
       console.error("Error fetching transactions:", error);
+      throw error;
+    }
+  }
+};
+
+export interface Quote {
+  id: number;
+  quote: string;
+  author: string;
+}
+
+// Extend FirestoreService with quotes operations
+export const FirestoreQuotesService = {
+  async getAllQuotes(): Promise<Quote[]> {
+    try {
+      const q = query(
+        collection(db, QUOTES_COLLECTION),
+        orderBy("id", "asc")
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ ...doc.data(), id: Number(doc.id) } as Quote));
+    } catch (error) {
+      console.error("Error fetching quotes:", error);
+      throw error;
+    }
+  },
+
+  async addQuote(quoteData: Quote): Promise<void> {
+    try {
+      const quoteRef = doc(db, QUOTES_COLLECTION, quoteData.id.toString());
+      await setDoc(quoteRef, quoteData);
+    } catch (error) {
+      console.error("Error adding quote:", error);
       throw error;
     }
   }
