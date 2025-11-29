@@ -59,7 +59,7 @@ export default function DashboardPage() {
   if (!user) return null
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-0">
+    <div className="flex-1 space-y-4 p-4 ml-16">
       <div className="flex items-center justify-between space-y-2">
         {/* Header elements moved to SiteHeader */}
       </div>

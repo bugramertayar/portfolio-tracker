@@ -1,5 +1,7 @@
 "use client"
 
+import Image from "next/image"
+
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { LogOut } from "lucide-react"
@@ -29,11 +31,17 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-background p-4 flex items-center justify-between border-b">
-      <div className="flex items-center">
-        {isDashboard && <h1 className="text-xl font-bold">Dashboard</h1>}
+    <header className="fixed left-0 top-0 z-50 flex h-screen w-16 flex-col items-center justify-between border-r bg-background py-4">
+      <div className="flex items-center justify-center">
+        <Image
+          src="/logo.png"
+          alt="Portfolio Tracker Logo"
+          width={40}
+          height={40}
+          className="rounded-lg"
+        />
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col items-center space-y-4">
         <ModeToggle />
         {isDashboard && (
           <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
