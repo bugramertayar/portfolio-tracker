@@ -8,6 +8,9 @@ import { LogOut } from "lucide-react"
 import { logout } from "@/lib/auth"
 import { useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
+import Link from "next/link"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { LayoutDashboard, TrendingUp } from "lucide-react"
 
 export function SiteHeader() {
   const router = useRouter()
@@ -32,18 +35,57 @@ export function SiteHeader() {
 
   return (
     <header className="fixed left-0 top-0 z-50 flex h-screen w-16 flex-col items-center justify-between border-r bg-background py-4">
-      <div className="flex items-center justify-center">
-        <Image
-          src="/logo.png"
-          alt="Portfolio Tracker Logo"
-          width={40}
-          height={40}
-          className="rounded-lg"
-        />
+      <div className="flex flex-col items-center gap-6">
+        <div className="flex items-center justify-center">
+          <Link href="/dashboard">
+            <Image
+              src="/logo.png"
+              alt="Portfolio Tracker Logo"
+              width={40}
+              height={40}
+              className="rounded-lg hover:opacity-80 transition-opacity"
+            />
+          </Link>
+        </div>
+
+        <nav className="flex flex-col items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                asChild
+                variant={isDashboard ? "secondary" : "ghost"} 
+                size="icon" 
+                className="h-10 w-10"
+              >
+                <Link href="/dashboard">
+                  <LayoutDashboard className="h-5 w-5" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Dashboard</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                asChild
+                variant={pathname === "/analytics" ? "secondary" : "ghost"} 
+                size="icon" 
+                className="h-10 w-10"
+              >
+                <Link href="/analytics">
+                  <TrendingUp className="h-5 w-5" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Portfolio Analytics</TooltipContent>
+          </Tooltip>
+        </nav>
       </div>
+
       <div className="flex flex-col items-center space-y-4">
         <ModeToggle />
-        {isDashboard && (
+        {(isDashboard || pathname === "/analytics") && (
           <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
             <LogOut className="h-5 w-5" />
           </Button>
