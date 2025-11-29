@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
+import { Check, ChevronsUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   Form,
@@ -33,7 +34,6 @@ import {
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
@@ -46,7 +46,6 @@ import {
 import { cn } from "@/lib/utils"
 import { AssetCategory } from "@/types/portfolio.types"
 import { searchAssetsAction } from "@/app/actions/portfolio"
-import { useTransactionStore } from "@/store/transaction.store"
 import { usePortfolioStore } from "@/store/portfolio.store"
 import { toast } from "sonner"
 
@@ -134,6 +133,9 @@ export function AddAssetDialog({ userId }: { userId: string }) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Asset</DialogTitle>
+          <DialogDescription>
+            Search for an asset and add it to your portfolio.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

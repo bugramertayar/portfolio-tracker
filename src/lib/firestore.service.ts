@@ -6,13 +6,8 @@ import {
   getDocs, 
   query, 
   where, 
-  orderBy, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc,
-  Timestamp,
-  runTransaction,
-  serverTimestamp
+  orderBy,
+  runTransaction
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { 

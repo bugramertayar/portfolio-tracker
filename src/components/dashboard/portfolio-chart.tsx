@@ -78,8 +78,8 @@ export function PortfolioChart({ data, title = "Portfolio Distribution", currenc
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent className="pl-2">
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
             <PieChart>
               <Pie
                 data={chartData}

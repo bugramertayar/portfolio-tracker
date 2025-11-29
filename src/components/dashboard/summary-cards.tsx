@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PortfolioSummary } from "@/types/portfolio.types"
 import { formatCurrency, formatPercentage } from "@/lib/formatters"
-import { TrendingUp, TrendingDown, DollarSign, Wallet } from "lucide-react"
+import { TrendingUp, TrendingDown, Wallet } from "lucide-react"
 
 interface SummaryCardsProps {
   summary: PortfolioSummary

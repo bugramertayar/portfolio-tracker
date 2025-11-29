@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   Form,
@@ -35,7 +36,6 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { usePortfolioStore } from "@/store/portfolio.store"
 import { useTransactionStore } from "@/store/transaction.store"
 import { toast } from "sonner"
-import { AssetCategory } from "@/types/portfolio.types"
 
 const formSchema = z.object({
   type: z.enum(["BUY", "SELL", "DIVIDEND"]),
@@ -161,6 +161,9 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Transaction</DialogTitle>
+          <DialogDescription>
+            Enter the details of your transaction below.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

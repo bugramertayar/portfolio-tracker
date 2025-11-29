@@ -1,4 +1,4 @@
-import { PortfolioItem, AssetCategory } from "@/types/portfolio.types";
+import { PortfolioItem } from "@/types/portfolio.types";
 
 export const calculatePortfolioTotal = (items: PortfolioItem[]) => {
   return items.reduce((total, item) => total + (item.currentValueTRY || item.currentValue || 0), 0);
