@@ -70,8 +70,14 @@ export const FirestoreService = {
 
         // 2. Prepare transaction record
         const transactionRef = doc(collection(db, USERS_COLLECTION, userId, TRANSACTIONS_COLLECTION));
+        
+        // Clean undefined values (Firestore doesn't accept undefined)
+        const cleanedData = Object.fromEntries(
+          Object.entries(transactionData).filter(([_, value]) => value !== undefined)
+        );
+        
         const newTransaction: any = {
-          ...transactionData,
+          ...cleanedData,
           date: Date.now(),
           createdAt: Date.now()
         };
@@ -124,16 +130,16 @@ export const FirestoreService = {
             newTotalDividends += transactionData.total;
             
             if (transactionData.isDividendReinvested) {
-              // Reinvested dividend: reduce cost basis and increase quantity
+              // Reinvested dividend: keep cost basis same (money from pocket unchanged) but increase quantity
               newReinvestedDividends += transactionData.total;
-              // Reduce total cost by dividend amount (lowers average cost)
-              newTotalCost -= transactionData.total;
-              // Increase quantity based on current price
+              // DO NOT reduce totalCost - the original investment amount stays the same
+              // Only increase quantity based on reinvestment price
               // Note: transactionData.price should be the price at which dividend was reinvested
               if (transactionData.price > 0) {
                 const additionalShares = transactionData.total / transactionData.price;
                 newQuantity += additionalShares;
               }
+              // New average cost will be: original totalCost / new quantity
             } else {
               // Cash dividend: only add to cash dividends (affects P/L)
               newCashDividends += transactionData.total;
