@@ -41,6 +41,7 @@ export default function AuthLayout({
           fill
           className="object-cover opacity-40"
           priority
+          sizes="50vw"
         />
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Image
