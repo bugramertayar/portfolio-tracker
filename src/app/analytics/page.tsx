@@ -8,16 +8,23 @@ import { Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
-import { generatePortfolioHistory, TimeRange, PortfolioDataPoint } from "@/lib/mock-data"
+import { FirestoreService } from "@/lib/firestore.service"
+import { getHistoricalPricesAction } from "@/app/actions/portfolio"
+import { calculatePortfolioHistory, HistoricalDataPoint, PriceHistoryMap } from "@/lib/analytics-utils"
+import { subDays, subMonths, subYears, format } from "date-fns"
 
+type TimeRange = '1D' | '1W' | '1M' | '1Y' | '3Y' | '5Y'
 type Category = 'ALL' | 'BIST100' | 'US_STOCKS' | 'METALS'
 
 export default function AnalyticsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [dataLoading, setDataLoading] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const [timeRange, setTimeRange] = useState<TimeRange>('1M')
   const [selectedCategory, setSelectedCategory] = useState<Category>('ALL')
-  const [data, setData] = useState<PortfolioDataPoint[]>([])
+  const [data, setData] = useState<HistoricalDataPoint[]>([])
+  const [error, setError] = useState<string | null>(null)
   
   // Auth check
   useEffect(() => {
@@ -25,17 +32,108 @@ export default function AnalyticsPage() {
       if (!currentUser) {
         router.push("/login")
       } else {
+        setUserId(currentUser.uid)
         setLoading(false)
       }
     })
     return () => unsubscribe()
   }, [router])
 
-  // Data generation
+  // Fetch data when userId or timeRange changes
   useEffect(() => {
-    const newData = generatePortfolioHistory(timeRange)
-    setData(newData)
-  }, [timeRange])
+    if (!userId) return
+
+    const fetchData = async () => {
+      setDataLoading(true)
+      setError(null)
+      
+      try {
+        // 1. Fetch all transactions
+        const transactions = await FirestoreService.getTransactions(userId)
+        
+        if (transactions.length === 0) {
+          setData([])
+          setDataLoading(false)
+          return
+        }
+
+        // 2. Get unique symbols
+        const symbols = [...new Set(transactions.map(t => t.symbol))]
+        
+        // Add TRY=X for exchange rate
+        if (!symbols.includes('TRY=X')) {
+          symbols.push('TRY=X')
+        }
+
+        // 3. Determine date range based on timeRange
+        const now = new Date()
+        let startDate: Date
+        let interval: '1d' | '1wk' | '1mo' = '1d'
+
+        switch (timeRange) {
+          case '1D':
+            startDate = subDays(now, 1)
+            interval = '1d'
+            break
+          case '1W':
+            startDate = subDays(now, 7)
+            interval = '1d'
+            break
+          case '1M':
+            startDate = subMonths(now, 1)
+            interval = '1d'
+            break
+          case '1Y':
+            startDate = subYears(now, 1)
+            interval = '1d'
+            break
+          case '3Y':
+            startDate = subYears(now, 3)
+            interval = '1wk'
+            break
+          case '5Y':
+            startDate = subYears(now, 5)
+            interval = '1mo'
+            break
+          default:
+            startDate = subMonths(now, 1)
+            interval = '1d'
+        }
+
+        // 4. Fetch historical prices for all symbols
+        const priceHistoryMap: PriceHistoryMap = {}
+        
+        await Promise.all(
+          symbols.map(async (symbol) => {
+            const response = await getHistoricalPricesAction(symbol, startDate, now, interval)
+            if (response.success && response.data) {
+              priceHistoryMap[symbol] = response.data.map((item: any) => ({
+                date: format(new Date(item.date), 'yyyy-MM-dd'),
+                close: item.close || 0
+              }))
+            }
+          })
+        )
+
+        // 5. Calculate portfolio history
+        const portfolioHistory = calculatePortfolioHistory(
+          transactions,
+          priceHistoryMap,
+          startDate,
+          now
+        )
+
+        setData(portfolioHistory)
+      } catch (err: any) {
+        console.error("Error fetching analytics data:", err)
+        setError(err.message || "Failed to load analytics data")
+      } finally {
+        setDataLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [userId, timeRange])
 
   if (loading) {
     return (
@@ -91,73 +189,87 @@ export default function AnalyticsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-            <div className="h-[400px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={data}
-                  margin={{
-                    top: 10,
-                    right: 30,
-                    left: 0,
-                    bottom: 0,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={true} stroke="#e5e7eb" opacity={0.4} />
-                  <XAxis 
-                    dataKey="formattedDate" 
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    minTickGap={30}
-                  />
-                  <YAxis
-                    stroke="#888888"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `₺${(value / 1000).toFixed(0)}k`}
-                    domain={['auto', 'auto']}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  
-                  {(selectedCategory === 'ALL' || selectedCategory === 'BIST100') && (
-                    <Line
-                      type="monotone"
-                      dataKey="bist100"
-                      name="BIST 100"
-                      stroke="#22c55e"
-                      strokeWidth={2}
-                      dot={{ r: 4, fill: "var(--background)", strokeWidth: 2 }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
+            {dataLoading ? (
+              <div className="h-[400px] w-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : error ? (
+              <div className="h-[400px] w-full flex items-center justify-center text-destructive">
+                {error}
+              </div>
+            ) : data.length === 0 ? (
+              <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
+                No transaction data available
+              </div>
+            ) : (
+              <div className="h-[400px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={data}
+                    margin={{
+                      top: 10,
+                      right: 30,
+                      left: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={true} stroke="#e5e7eb" opacity={0.4} />
+                    <XAxis 
+                      dataKey="formattedDate" 
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      minTickGap={30}
                     />
-                  )}
-                  {(selectedCategory === 'ALL' || selectedCategory === 'US_STOCKS') && (
-                    <Line
-                      type="monotone"
-                      dataKey="usStocks"
-                      name="US Stocks"
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      dot={{ r: 4, fill: "var(--background)", strokeWidth: 2 }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    <YAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `₺${(value / 1000).toFixed(0)}k`}
+                      domain={['auto', 'auto']}
                     />
-                  )}
-                  {(selectedCategory === 'ALL' || selectedCategory === 'METALS') && (
-                    <Line
-                      type="monotone"
-                      dataKey="metals"
-                      name="Metals"
-                      stroke="#eab308"
-                      strokeWidth={2}
-                      dot={{ r: 4, fill: "var(--background)", strokeWidth: 2 }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
-                    />
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    
+                    {(selectedCategory === 'ALL' || selectedCategory === 'BIST100') && (
+                      <Line
+                        type="monotone"
+                        dataKey="bist100"
+                        name="BIST 100"
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        dot={{ r: 4, fill: "var(--background)", strokeWidth: 2 }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    )}
+                    {(selectedCategory === 'ALL' || selectedCategory === 'US_STOCKS') && (
+                      <Line
+                        type="monotone"
+                        dataKey="usStocks"
+                        name="US Stocks"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        dot={{ r: 4, fill: "var(--background)", strokeWidth: 2 }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    )}
+                    {(selectedCategory === 'ALL' || selectedCategory === 'METALS') && (
+                      <Line
+                        type="monotone"
+                        dataKey="metals"
+                        name="Metals"
+                        stroke="#eab308"
+                        strokeWidth={2}
+                        dot={{ r: 4, fill: "var(--background)", strokeWidth: 2 }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
             
             <div className="flex flex-col items-center justify-center gap-4 mt-6">
               {/* Category Filters */}

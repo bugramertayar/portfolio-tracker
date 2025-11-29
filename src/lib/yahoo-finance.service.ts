@@ -95,5 +95,20 @@ export const YahooFinanceService = {
       console.error("Error searching assets:", error);
       return [];
     }
+  },
+
+  async getHistoricalPrices(symbol: string, period1: Date, period2: Date, interval: '1d' | '1wk' | '1mo' = '1d'): Promise<any[]> {
+    try {
+      const queryOptions = {
+        period1,
+        period2,
+        interval
+      };
+      const result = await yahooFinance.historical(symbol, queryOptions);
+      return result;
+    } catch (error) {
+      console.error(`Error fetching historical prices for ${symbol}:`, error);
+      return [];
+    }
   }
 };

@@ -20,3 +20,13 @@ export async function searchAssetsAction(query: string) {
     return { success: false, error: error.message };
   }
 }
+
+export async function getHistoricalPricesAction(symbol: string, period1: Date, period2: Date, interval: '1d' | '1wk' | '1mo' = '1d') {
+  try {
+    const prices = await YahooFinanceService.getHistoricalPrices(symbol, period1, period2, interval);
+    return { success: true, data: prices };
+  } catch (error: any) {
+    console.error("Server Action Error (Historical):", error);
+    return { success: false, error: error.message };
+  }
+}
