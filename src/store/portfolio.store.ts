@@ -88,7 +88,8 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
       const updatedItems = items.map(item => {
         const currentPrice = prices[item.symbol] || item.averageCost; // Fallback to cost if no price
         const currentValue = item.quantity * currentPrice;
-        const profit = currentValue - item.totalCost + (item.totalDividends || 0);
+        // Profit = Current Value - Total Cost + Cash Dividends (not reinvested)
+        const profit = currentValue - item.totalCost + (item.cashDividends || 0);
         const profitPercentage = item.totalCost > 0 ? (profit / item.totalCost) * 100 : 0;
         
         let currency: 'TRY' | 'USD' = 'TRY';
@@ -141,9 +142,9 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
           summary.totalCostTRY += item.totalCost * (item.category === AssetCategory.US_MARKETS ? exchangeRate : 1);
           
           // Profit in TRY
-          // Profit = (Current Value TRY - Cost TRY) + Dividends TRY
-          const dividendsTRY = (item.totalDividends || 0) * exchangeRate;
-          summary.totalProfitTRY += (item.currentValueTRY || 0) - (item.totalCost * exchangeRate) + dividendsTRY;
+          // Profit = (Current Value TRY - Cost TRY) + Cash Dividends TRY (not reinvested)
+          const cashDividendsTRY = (item.cashDividends || 0) * exchangeRate;
+          summary.totalProfitTRY += (item.currentValueTRY || 0) - (item.totalCost * exchangeRate) + cashDividendsTRY;
         } else if (item.category === AssetCategory.PRECIOUS_METALS) {
           summary.preciousMetals.totalValue += item.currentValue || 0;
           summary.preciousMetals.totalCost += item.totalCost;

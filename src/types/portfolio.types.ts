@@ -23,6 +23,7 @@ export interface Transaction {
   date: number; // Timestamp
   category: AssetCategory;
   createdAt: number;
+  isDividendReinvested?: boolean; // Only for DIVIDEND type - tracks if dividend was reinvested
 }
 
 export interface PortfolioItem {
@@ -34,7 +35,9 @@ export interface PortfolioItem {
   quantity: number;
   averageCost: number;
   totalCost: number; // Added
-  totalDividends?: number; // Added for dividend tracking
+  totalDividends?: number; // Total dividends received (cash + reinvested) - for display
+  cashDividends?: number; // Only cash dividends - used in P/L calculation
+  reinvestedDividends?: number; // Only reinvested dividends - for display
   currentPrice?: number;
   currentValue?: number; // Added
   totalValue?: number;

@@ -20,8 +20,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -41,9 +43,15 @@ const formSchema = z.object({
   price: z.string().optional(),
   totalAmount: z.string().optional(),
   date: z.date(),
+  isDividendReinvested: z.boolean().optional(),
 }).refine((data) => {
   if (data.type === "DIVIDEND") {
-    return !!data.totalAmount && parseFloat(data.totalAmount) > 0;
+    const hasAmount = !!data.totalAmount && parseFloat(data.totalAmount) > 0;
+    // If reinvested, also need price
+    if (data.isDividendReinvested) {
+      return hasAmount && !!data.price && parseFloat(data.price) > 0;
+    }
+    return hasAmount;
   }
   return !!data.quantity && !!data.price;
 }, {
@@ -64,10 +72,12 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
       price: "",
       totalAmount: "",
       date: new Date(),
+      isDividendReinvested: false,
     },
   })
 
   const transactionType = form.watch("type")
+  const isDividendReinvested = form.watch("isDividendReinvested")
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -86,6 +96,15 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         if (isNaN(total) || total <= 0) {
           toast.error("Total amount must be a valid number greater than 0");
           return;
+        }
+        
+        // If reinvested, also parse and validate price
+        if (values.isDividendReinvested) {
+          price = parseFloat(values.price || "0");
+          if (isNaN(price) || price <= 0) {
+            toast.error("Reinvestment price must be a valid number greater than 0");
+            return;
+          }
         }
       } else {
         // BUY or SELL
@@ -114,6 +133,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         total,
         category: selectedAsset.category,
         date: values.date.getTime(),
+        isDividendReinvested: values.type === "DIVIDEND" ? values.isDividendReinvested : undefined,
       }
 
       const { FirestoreService } = await import("@/lib/firestore.service");
@@ -199,19 +219,61 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
             />
             
             {transactionType === "DIVIDEND" ? (
-              <FormField
-                control={form.control}
-                name="totalAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Dividend Amount</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="any" placeholder="0.00" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <>
+                <FormField
+                  control={form.control}
+                  name="totalAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Dividend Amount</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="any" placeholder="0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="isDividendReinvested"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 cursor-pointer">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="cursor-pointer">
+                          Reinvest this dividend
+                        </FormLabel>
+                        <FormDescription>
+                          Check this if you used the dividend to buy more shares
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                {isDividendReinvested && (
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Reinvestment Price per Share</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="any" placeholder="0.00" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Price at which dividend was reinvested
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
+              </>
             ) : (
               <>
                 <FormField

@@ -104,6 +104,8 @@ export const FirestoreService = {
           let newQuantity = currentData.quantity;
           let newTotalCost = currentData.totalCost;
           let newTotalDividends = currentData.totalDividends || 0;
+          let newCashDividends = currentData.cashDividends || 0;
+          let newReinvestedDividends = currentData.reinvestedDividends || 0;
 
           if (transactionData.type === 'BUY') {
             newQuantity += transactionData.quantity;
@@ -118,7 +120,24 @@ export const FirestoreService = {
             const costPerShare = currentData.totalCost / currentData.quantity;
             newTotalCost -= (costPerShare * transactionData.quantity);
           } else if (transactionData.type === 'DIVIDEND') {
+            // Track total dividends for display
             newTotalDividends += transactionData.total;
+            
+            if (transactionData.isDividendReinvested) {
+              // Reinvested dividend: reduce cost basis and increase quantity
+              newReinvestedDividends += transactionData.total;
+              // Reduce total cost by dividend amount (lowers average cost)
+              newTotalCost -= transactionData.total;
+              // Increase quantity based on current price
+              // Note: transactionData.price should be the price at which dividend was reinvested
+              if (transactionData.price > 0) {
+                const additionalShares = transactionData.total / transactionData.price;
+                newQuantity += additionalShares;
+              }
+            } else {
+              // Cash dividend: only add to cash dividends (affects P/L)
+              newCashDividends += transactionData.total;
+            }
           }
 
           // 4. Perform writes
@@ -135,6 +154,8 @@ export const FirestoreService = {
               totalCost: newTotalCost,
               averageCost: newQuantity > 0 ? newTotalCost / newQuantity : 0,
               totalDividends: newTotalDividends,
+              cashDividends: newCashDividends,
+              reinvestedDividends: newReinvestedDividends,
               updatedAt: Date.now()
             });
           }

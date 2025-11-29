@@ -79,8 +79,16 @@ export function TransactionsTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="font-medium">{transaction.symbol}</TableCell>
-                  <TableCell>{transaction.type === 'DIVIDEND' ? '-' : transaction.quantity}</TableCell>
-                  <TableCell>{transaction.type === 'DIVIDEND' ? '-' : formatCurrency(transaction.price, transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
+                  <TableCell>
+                    {transaction.type === 'DIVIDEND' 
+                      ? (transaction.isDividendReinvested ? `${(transaction.total / transaction.price).toFixed(4).replace(/\.?0+$/, '')}` : '-')
+                      : transaction.quantity}
+                  </TableCell>
+                  <TableCell>
+                    {transaction.type === 'DIVIDEND' 
+                      ? (transaction.isDividendReinvested ? formatCurrency(transaction.price, transaction.category === 'US_MARKETS' ? 'USD' : currency) : '-')
+                      : formatCurrency(transaction.price, transaction.category === 'US_MARKETS' ? 'USD' : currency)}
+                  </TableCell>
                   <TableCell>{formatCurrency(transaction.total || (transaction.price * transaction.quantity), transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
                 </TableRow>
               ))

@@ -9,6 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { PortfolioItem } from "@/types/portfolio.types"
 import { formatCurrency, formatPercentage } from "@/lib/formatters"
 import { ArrowUpDown } from "lucide-react"
@@ -95,14 +101,32 @@ export function PortfolioTable({ items, currency = 'TRY' }: PortfolioTableProps)
             sortedItems.map((item) => (
               <TableRow key={item.id || item.symbol}>
                 <TableCell className="font-medium">{item.symbol}</TableCell>
-                <TableCell>{item.quantity}</TableCell>
+                <TableCell>{item.quantity.toFixed(4).replace(/\.?0+$/, '')}</TableCell>
                 <TableCell>{formatCurrency(item.averageCost, item.currency || currency)}</TableCell>
                 <TableCell>{formatCurrency(item.currentPrice || 0, item.currency || currency)}</TableCell>
                 <TableCell>{formatCurrency(item.currentValue || 0, item.currency || currency)}</TableCell>
                 <TableCell className="text-green-600">
-                  {item.totalDividends && item.totalDividends > 0 
-                    ? formatCurrency(item.totalDividends, item.currency || currency) 
-                    : '-'}
+                  {item.totalDividends && item.totalDividends > 0 ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help">
+                            {formatCurrency(item.totalDividends, item.currency || currency)}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            <p className="font-semibold">Dividend Breakdown:</p>
+                            <p>Total: {formatCurrency(item.totalDividends, item.currency || currency)}</p>
+                            <p>Cash: {formatCurrency(item.cashDividends || 0, item.currency || currency)}</p>
+                            <p>Reinvested: {formatCurrency(item.reinvestedDividends || 0, item.currency || currency)}</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    '-'
+                  )}
                 </TableCell>
                 <TableCell className={item.profit && item.profit >= 0 ? "text-green-600" : "text-red-600"}>
                   {formatCurrency(item.profit || 0, item.currency || currency)}
