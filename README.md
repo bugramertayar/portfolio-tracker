@@ -33,6 +33,11 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - Summary cards showing key metrics
 - Refresh functionality for real-time updates
 - Modern interactive tooltips with percentage breakdowns
+- **Portfolio Analytics**:
+  - Interactive multi-line chart for wealth evolution
+  - Category-based filtering (BIST100, US Stocks, Metals)
+  - Time range selection (1D to 5Y)
+  - Mock data integration for demonstration
 
 ### 🎨 Modern UI/UX
 - Dark/Light theme support
