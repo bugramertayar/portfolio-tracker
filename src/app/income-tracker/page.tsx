@@ -6,6 +6,7 @@ import { FirestoreService } from "@/lib/firestore.service"
 import { IncomeEntry } from "@/types/income"
 import { AddIncomeDialog } from "@/components/income/add-income-dialog"
 import { IncomeMatrix } from "@/components/income/income-matrix"
+import { IncomeHistoryTable } from "@/components/income/income-history-table"
 import { Loader2 } from "lucide-react"
 
 import { useRouter } from "next/navigation"
@@ -72,6 +73,8 @@ export default function IncomeTrackerPage() {
         data={incomes} 
         onEdit={() => userId && fetchIncomes(userId)} 
       />
+      
+      <IncomeHistoryTable incomes={incomes} />
     </div>
   )
 }
