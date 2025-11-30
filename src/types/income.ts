@@ -8,6 +8,7 @@ export interface IncomeEntry {
   amount: number;
   category: string;
   description?: string;
+  company?: string;
   createdAt: Timestamp;
 }
 

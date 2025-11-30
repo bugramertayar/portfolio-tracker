@@ -65,6 +65,7 @@ export function IncomeHistoryTable({ incomes }: IncomeHistoryTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Category</TableHead>
+                <TableHead>Company</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Description</TableHead>
@@ -73,7 +74,7 @@ export function IncomeHistoryTable({ incomes }: IncomeHistoryTableProps) {
             <TableBody>
               {paginatedIncomes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center h-24">
+                  <TableCell colSpan={5} className="text-center h-24">
                     No income history found.
                   </TableCell>
                 </TableRow>
@@ -81,6 +82,7 @@ export function IncomeHistoryTable({ incomes }: IncomeHistoryTableProps) {
                 paginatedIncomes.map((income) => (
                   <TableRow key={income.id}>
                     <TableCell className="font-medium">{income.category}</TableCell>
+                    <TableCell>{income.company || "-"}</TableCell>
                     <TableCell>{formatCurrency(income.amount, 'TRY')}</TableCell>
                     <TableCell>{`${MONTHS[income.month]} ${income.year}`}</TableCell>
                     <TableCell>{income.description || "-"}</TableCell>

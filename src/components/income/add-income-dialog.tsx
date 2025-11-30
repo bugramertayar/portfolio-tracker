@@ -32,6 +32,7 @@ import {
 import { toast } from "sonner"
 import { FirestoreService } from "@/lib/firestore.service"
 import { cn } from "@/lib/utils"
+import { usePortfolioStore } from "@/store/portfolio.store"
 
 const formSchema = z.object({
   year: z.string(),
@@ -41,6 +42,7 @@ const formSchema = z.object({
   }),
   category: z.string().min(1, "Category is required"),
   description: z.string().optional(),
+  company: z.string().optional(),
 })
 
 const MONTHS = [
@@ -55,6 +57,7 @@ interface AddIncomeDialogProps {
 
 export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
   const [open, setOpen] = useState(false)
+  const { items } = usePortfolioStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,8 +67,11 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
       amount: "",
       category: "",
       description: "",
+      company: "",
     },
   })
+
+  const category = form.watch("category");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -77,6 +83,7 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
           amount,
           category: values.category,
           description: values.description,
+          company: values.category === "Dividend" ? values.company : undefined,
         })
       );
 
@@ -90,6 +97,7 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
         amount: "",
         category: "",
         description: "",
+        company: "",
       });
       onSuccess();
     } catch (error) {
@@ -211,6 +219,39 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
                 </FormItem>
               )}
             />
+
+            {category === "Dividend" && (
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company / Symbol (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select company" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {items.length === 0 ? (
+                          <SelectItem value="none" disabled>
+                            No companies in portfolio
+                          </SelectItem>
+                        ) : (
+                          items.map((item) => (
+                            <SelectItem key={item.symbol} value={item.symbol}>
+                              {item.symbol} - {item.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

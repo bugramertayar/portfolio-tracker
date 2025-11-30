@@ -111,7 +111,14 @@ export function IncomeMatrix({ data, onEdit }: IncomeMatrixProps) {
                               <p className="font-bold border-b pb-1 mb-1">Total: {formatCurrency(total)}</p>
                               {entries.map((entry) => (
                                 <div key={entry.id} className="text-xs flex justify-between gap-4">
-                                  <span>{entry.category}</span>
+                                  <span>
+                                    {entry.category}
+                                    {entry.company && (
+                                      <span className="text-muted-foreground ml-1">
+                                        ({entry.company})
+                                      </span>
+                                    )}
+                                  </span>
                                   <span>{formatCurrency(entry.amount)}</span>
                                 </div>
                               ))}

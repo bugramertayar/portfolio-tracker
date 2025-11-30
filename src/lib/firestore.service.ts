@@ -160,6 +160,7 @@ export const FirestoreService = {
               amount: transactionData.total,
               category: "Dividend",
               description: `Dividend from ${transactionData.symbol}` + (transactionData.isDividendReinvested ? " (Reinvested)" : ""),
+              company: transactionData.symbol,
               createdAt: Timestamp.now()
             };
             
