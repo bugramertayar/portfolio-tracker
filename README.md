@@ -47,9 +47,18 @@ A comprehensive portfolio management application built with Next.js, enabling us
   - Monthly and yearly totals
   - Category-based income tracking
   - Tooltips with detailed income sources
+  - Company/asset tracking for income sources
+- **Income History Table**:
+  - Comprehensive view of all income records
+  - Pagination support for large datasets
+  - Sortable columns for easy filtering
+- **Automatic Dividend Integration**:
+  - Portfolio dividend transactions automatically sync to income tracker
+  - Seamless tracking of dividend income from your investments
 - **Management**:
   - Add multiple months at once
   - Edit/Delete individual entries
+  - Company selection from portfolio assets
   - Real-time updates
 
 ### 🎨 Modern UI/UX
@@ -179,31 +188,58 @@ portfolio-tracker/
 │   │   ├── (auth)/          # Authentication pages
 │   │   │   ├── login/
 │   │   │   └── register/
-│   │   ├── dashboard/       # Main dashboard
-│   │   ├── income-tracker/  # Income tracker module
+│   │   ├── analytics/       # Portfolio analytics page
+│   │   ├── dashboard/       # Main dashboard page
+│   │   ├── income-tracker/  # Income tracker page
 │   │   ├── actions/         # Server actions
-│   │   └── layout.tsx       # Root layout
+│   │   ├── layout.tsx       # Root layout
+│   │   ├── page.tsx         # Landing page
+│   │   └── globals.css      # Global styles
 │   ├── components/
 │   │   ├── dashboard/       # Dashboard components
 │   │   │   ├── tabs.tsx
+│   │   │   ├── add-asset-dialog.tsx
+│   │   │   ├── add-transaction-dialog.tsx
 │   │   │   ├── portfolio-chart.tsx
 │   │   │   ├── portfolio-table.tsx
 │   │   │   ├── transactions-table.tsx
-│   │   │   └── ...
+│   │   │   ├── summary-cards.tsx
+│   │   │   ├── bist100-tab.tsx
+│   │   │   ├── us-markets-tab.tsx
+│   │   │   ├── precious-metals-tab.tsx
+│   │   │   └── total-portfolio-tab.tsx
 │   │   ├── income/          # Income tracker components
 │   │   │   ├── add-income-dialog.tsx
 │   │   │   ├── income-matrix.tsx
-│   │   │   └── ...
-│   │   └── ui/              # Reusable UI components
+│   │   │   ├── income-history-table.tsx
+│   │   │   └── income-details-dialog.tsx
+│   │   ├── ui/              # Reusable UI components (Radix UI)
+│   │   ├── site-header.tsx  # Main navigation header
+│   │   ├── mode-toggle.tsx  # Dark/Light theme toggle
+│   │   └── theme-provider.tsx
 │   ├── lib/
 │   │   ├── firebase.ts      # Firebase configuration
 │   │   ├── auth.ts          # Authentication utilities
-│   │   └── utils.ts         # Helper functions
-│   └── store/
-│       ├── portfolio.store.ts    # Portfolio state management
-│       └── transaction.store.ts  # Transaction state management
+│   │   ├── firestore.service.ts    # Firestore CRUD operations
+│   │   ├── yahoo-finance.service.ts # Yahoo Finance API integration
+│   │   ├── analytics-utils.ts      # Portfolio analytics calculations
+│   │   ├── calculations.ts  # Financial calculations
+│   │   ├── formatters.ts    # Number/currency formatters
+│   │   └── utils.ts         # General helper functions
+│   ├── store/
+│   │   ├── portfolio.store.ts      # Portfolio state (Zustand)
+│   │   └── transaction.store.ts    # Transaction state (Zustand)
+│   ├── types/
+│   │   ├── portfolio.types.ts      # Portfolio & transaction types
+│   │   └── income.ts        # Income tracker types
+│   └── middleware.ts        # Next.js middleware for auth
 ├── public/                  # Static assets
+├── scripts/                 # Utility scripts
+├── firestore.rules         # Firestore security rules
 ├── .env.local              # Environment variables (not in repo)
+├── next.config.ts          # Next.js configuration
+├── tailwind.config.ts      # Tailwind CSS configuration
+├── tsconfig.json           # TypeScript configuration
 └── package.json
 ```
 
@@ -259,6 +295,7 @@ incomes/{incomeId}
 - amount: number
 - category: string
 - description: string (optional)
+- company: string (optional, portfolio asset symbol)
 - createdAt: timestamp
 ```
 
