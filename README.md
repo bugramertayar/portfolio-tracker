@@ -37,7 +37,20 @@ A comprehensive portfolio management application built with Next.js, enabling us
   - Interactive multi-line chart for wealth evolution
   - Category-based filtering (BIST100, US Stocks, Metals)
   - Time range selection (1D to 5Y)
+  - Time range selection (1D to 5Y)
   - Mock data integration for demonstration
+
+### 💰 Income Tracker
+- **Monthly Income Matrix**: Grid view of income streams (dividends, rents, etc.)
+- **Multi-Year Tracking**: Support for years 2025-2036
+- **Detailed Breakdown**:
+  - Monthly and yearly totals
+  - Category-based income tracking
+  - Tooltips with detailed income sources
+- **Management**:
+  - Add multiple months at once
+  - Edit/Delete individual entries
+  - Real-time updates
 
 ### 🎨 Modern UI/UX
 - Dark/Light theme support
@@ -167,6 +180,7 @@ portfolio-tracker/
 │   │   │   ├── login/
 │   │   │   └── register/
 │   │   ├── dashboard/       # Main dashboard
+│   │   ├── income-tracker/  # Income tracker module
 │   │   ├── actions/         # Server actions
 │   │   └── layout.tsx       # Root layout
 │   ├── components/
@@ -175,6 +189,10 @@ portfolio-tracker/
 │   │   │   ├── portfolio-chart.tsx
 │   │   │   ├── portfolio-table.tsx
 │   │   │   ├── transactions-table.tsx
+│   │   │   └── ...
+│   │   ├── income/          # Income tracker components
+│   │   │   ├── add-income-dialog.tsx
+│   │   │   ├── income-matrix.tsx
 │   │   │   └── ...
 │   │   └── ui/              # Reusable UI components
 │   ├── lib/
@@ -228,6 +246,19 @@ transactions/{userId}/history/{transactionId}
 - price: number (0 for dividend transactions)
 - total: number (total transaction amount or dividend received)
 - date: timestamp
+- date: timestamp
+- createdAt: timestamp
+```
+
+**incomes** collection:
+```
+incomes/{incomeId}
+- userId: string
+- year: number
+- month: number (0-11)
+- amount: number
+- category: string
+- description: string (optional)
 - createdAt: timestamp
 ```
 

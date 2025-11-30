@@ -10,7 +10,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { LayoutDashboard, TrendingUp } from "lucide-react"
+import { LayoutDashboard, TrendingUp, Wallet } from "lucide-react"
 
 export function SiteHeader() {
   const router = useRouter()
@@ -79,6 +79,22 @@ export function SiteHeader() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Portfolio Analytics</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                asChild
+                variant={pathname === "/income-tracker" ? "secondary" : "ghost"} 
+                size="icon" 
+                className="h-10 w-10"
+              >
+                <Link href="/income-tracker">
+                  <Wallet className="h-5 w-5" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Income Tracker</TooltipContent>
           </Tooltip>
         </nav>
       </div>

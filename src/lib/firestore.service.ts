@@ -7,7 +7,11 @@ import {
   query, 
   where, 
   orderBy,
-  runTransaction
+  runTransaction,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  Timestamp
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { 
@@ -15,12 +19,14 @@ import {
   Transaction, 
   AssetCategory 
 } from "@/types/portfolio.types";
+import { IncomeEntry } from "@/types/income";
 
 // Collection references
 const USERS_COLLECTION = "users";
 const PORTFOLIOS_COLLECTION = "portfolios";
 const TRANSACTIONS_COLLECTION = "transactions";
 const QUOTES_COLLECTION = "quotes";
+const INCOMES_COLLECTION = "incomes";
 
 export const FirestoreService = {
   // Portfolio Operations
@@ -188,6 +194,75 @@ export const FirestoreService = {
       return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
     } catch (error) {
       console.error("Error fetching transactions:", error);
+      throw error;
+    }
+  },
+
+  // Income Operations
+  async addIncome(userId: string, data: Omit<IncomeEntry, "id" | "userId" | "createdAt">) {
+    try {
+      const docRef = await addDoc(collection(db, INCOMES_COLLECTION), {
+        ...data,
+        userId,
+        createdAt: Timestamp.now(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error("Error adding income:", error);
+      throw error;
+    }
+  },
+
+  async getIncomes(userId: string, year?: number) {
+    try {
+      let q = query(
+        collection(db, INCOMES_COLLECTION),
+        where("userId", "==", userId)
+      );
+
+      if (year) {
+        q = query(
+          collection(db, INCOMES_COLLECTION),
+          where("userId", "==", userId),
+          where("year", "==", year)
+        );
+      }
+
+      const querySnapshot = await getDocs(q);
+      const incomes = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as IncomeEntry[];
+
+      // Sort client-side to avoid index requirements
+      return incomes.sort((a, b) => {
+        if (a.year !== b.year) {
+          return b.year - a.year; // Descending year
+        }
+        return a.month - b.month; // Ascending month
+      });
+    } catch (error) {
+      console.error("Error getting incomes:", error);
+      throw error;
+    }
+  },
+
+  async updateIncome(id: string, data: Partial<Omit<IncomeEntry, "id" | "userId" | "createdAt">>) {
+    try {
+      const docRef = doc(db, INCOMES_COLLECTION, id);
+      await updateDoc(docRef, data);
+    } catch (error) {
+      console.error("Error updating income:", error);
+      throw error;
+    }
+  },
+
+  async deleteIncome(id: string) {
+    try {
+      const docRef = doc(db, INCOMES_COLLECTION, id);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error("Error deleting income:", error);
       throw error;
     }
   }
