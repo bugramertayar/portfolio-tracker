@@ -16,6 +16,8 @@ export function SiteHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const isDashboard = pathname === "/dashboard"
+  const isAnalytics = pathname === "/analytics"
+  const isIncomeTracker = pathname === "/income-tracker"
   const isAuthPage = pathname === "/login" || pathname === "/register"
 
   if (isAuthPage) {
@@ -69,7 +71,7 @@ export function SiteHeader() {
             <TooltipTrigger asChild>
               <Button 
                 asChild
-                variant={pathname === "/analytics" ? "secondary" : "ghost"} 
+                variant={isAnalytics ? "secondary" : "ghost"} 
                 size="icon" 
                 className="h-10 w-10"
               >
@@ -85,7 +87,7 @@ export function SiteHeader() {
             <TooltipTrigger asChild>
               <Button 
                 asChild
-                variant={pathname === "/income-tracker" ? "secondary" : "ghost"} 
+                variant={isIncomeTracker ? "secondary" : "ghost"} 
                 size="icon" 
                 className="h-10 w-10"
               >
@@ -101,11 +103,9 @@ export function SiteHeader() {
 
       <div className="flex flex-col items-center space-y-4">
         <ModeToggle />
-        {(isDashboard || pathname === "/analytics") && (
-          <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-            <LogOut className="h-5 w-5" />
-          </Button>
-        )}
+        <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+          <LogOut className="h-5 w-5" />
+        </Button>
       </div>
     </header>
   )
