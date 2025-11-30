@@ -151,6 +151,35 @@ export default function AnalyticsPage() {
     { id: 'METALS', label: 'Metals', color: '#eab308' }, // Yellow/Gold
   ]
 
+  // Calculate percentage changes for each category
+  const calculatePercentageChange = () => {
+    if (data.length < 2) {
+      return {
+        total: 0,
+        bist100: 0,
+        usStocks: 0,
+        metals: 0
+      }
+    }
+
+    const firstPoint = data[0]
+    const lastPoint = data[data.length - 1]
+
+    const calcChange = (start: number, end: number) => {
+      if (start === 0) return 0
+      return ((end - start) / start) * 100
+    }
+
+    return {
+      total: calcChange(firstPoint.total, lastPoint.total),
+      bist100: calcChange(firstPoint.bist100, lastPoint.bist100),
+      usStocks: calcChange(firstPoint.usStocks, lastPoint.usStocks),
+      metals: calcChange(firstPoint.metals, lastPoint.metals)
+    }
+  }
+
+  const percentageChanges = calculatePercentageChange()
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -179,6 +208,67 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Portfolio Analytics</h2>
       </div>
+      
+      {/* Percentage Change Cards */}
+      {!dataLoading && !error && data.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="shadow-md border-border/40">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">All Assets</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className={`text-2xl font-bold ${percentageChanges.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {percentageChanges.total >= 0 ? '+' : ''}{percentageChanges.total.toFixed(2)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {timeRange} change
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-md border-border/40">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">BIST 100</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className={`text-2xl font-bold ${percentageChanges.bist100 >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {percentageChanges.bist100 >= 0 ? '+' : ''}{percentageChanges.bist100.toFixed(2)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {timeRange} change
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-md border-border/40">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">US Stocks</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className={`text-2xl font-bold ${percentageChanges.usStocks >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {percentageChanges.usStocks >= 0 ? '+' : ''}{percentageChanges.usStocks.toFixed(2)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {timeRange} change
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-md border-border/40">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Metals</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className={`text-2xl font-bold ${percentageChanges.metals >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {percentageChanges.metals >= 0 ? '+' : ''}{percentageChanges.metals.toFixed(2)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {timeRange} change
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       
       <div className="grid gap-4 md:grid-cols-1">
         <Card className="col-span-1 shadow-md border-border/40">
