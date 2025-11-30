@@ -62,7 +62,7 @@ export const FirestoreService = {
   // Transaction Operations
   async addTransaction(
     userId: string, 
-    transactionData: Omit<Transaction, "id" | "createdAt" | "date">
+    transactionData: Omit<Transaction, "id" | "createdAt" | "date"> & { date?: number }
   ): Promise<void> {
     try {
       await runTransaction(db, async (transaction) => {
@@ -78,9 +78,11 @@ export const FirestoreService = {
           Object.entries(transactionData).filter(([_, value]) => value !== undefined)
         );
         
+        const transactionDate = transactionData.date || Date.now();
+
         const newTransaction: any = {
           ...cleanedData,
-          date: Date.now(),
+          date: transactionDate,
           createdAt: Date.now()
         };
 
@@ -146,6 +148,22 @@ export const FirestoreService = {
               // Cash dividend: only add to cash dividends (affects P/L)
               newCashDividends += transactionData.total;
             }
+
+            // Add to Income Tracker
+            const incomeRef = doc(collection(db, INCOMES_COLLECTION));
+            const incomeDateObj = new Date(transactionDate);
+            
+            const incomeData: any = {
+              userId,
+              year: incomeDateObj.getFullYear(),
+              month: incomeDateObj.getMonth(),
+              amount: transactionData.total,
+              category: "Dividend",
+              description: `Dividend from ${transactionData.symbol}` + (transactionData.isDividendReinvested ? " (Reinvested)" : ""),
+              createdAt: Timestamp.now()
+            };
+            
+            transaction.set(incomeRef, incomeData);
           }
 
           // 4. Perform writes
