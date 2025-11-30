@@ -162,7 +162,11 @@ export default function AnalyticsPage() {
       }
     }
 
-    const firstPoint = data[0]
+    // Find the first non-zero data point for each category
+    const findFirstNonZero = (key: 'total' | 'bist100' | 'usStocks' | 'metals') => {
+      return data.find(point => point[key] > 0)
+    }
+
     const lastPoint = data[data.length - 1]
 
     const calcChange = (start: number, end: number) => {
@@ -170,11 +174,16 @@ export default function AnalyticsPage() {
       return ((end - start) / start) * 100
     }
 
+    const firstTotal = findFirstNonZero('total')
+    const firstBist100 = findFirstNonZero('bist100')
+    const firstUsStocks = findFirstNonZero('usStocks')
+    const firstMetals = findFirstNonZero('metals')
+
     return {
-      total: calcChange(firstPoint.total, lastPoint.total),
-      bist100: calcChange(firstPoint.bist100, lastPoint.bist100),
-      usStocks: calcChange(firstPoint.usStocks, lastPoint.usStocks),
-      metals: calcChange(firstPoint.metals, lastPoint.metals)
+      total: firstTotal ? calcChange(firstTotal.total, lastPoint.total) : 0,
+      bist100: firstBist100 ? calcChange(firstBist100.bist100, lastPoint.bist100) : 0,
+      usStocks: firstUsStocks ? calcChange(firstUsStocks.usStocks, lastPoint.usStocks) : 0,
+      metals: firstMetals ? calcChange(firstMetals.metals, lastPoint.metals) : 0
     }
   }
 
