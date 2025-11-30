@@ -68,7 +68,10 @@ export default function IncomeTrackerPage() {
         <AddIncomeDialog userId={userId} onSuccess={() => fetchIncomes(userId)} />
       </div>
 
-      <IncomeMatrix data={incomes} />
+      <IncomeMatrix 
+        data={incomes} 
+        onEdit={() => userId && fetchIncomes(userId)} 
+      />
     </div>
   )
 }
