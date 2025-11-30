@@ -32,7 +32,8 @@ export default function DashboardPage() {
     })
 
     return () => unsubscribe()
-  }, [router, fetchPortfolio, fetchTransactions])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router])
 
   const handleLogout = async () => {
     try {

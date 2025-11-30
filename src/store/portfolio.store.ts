@@ -112,8 +112,8 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         };
       });
 
-      // Calculate summaries
-      const summary = { ...initialSummary };
+      // Calculate summaries - use deep copy to avoid reference issues
+      const summary: PortfolioSummary = JSON.parse(JSON.stringify(initialSummary));
 
       updatedItems.forEach(item => {
         if (item.category === AssetCategory.BIST100) {
