@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { SiteHeader } from "@/components/site-header"
+import { THEMES } from "@/lib/constants"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,10 @@ export default function RootLayout({
       >
         <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme={THEMES.CYBERPUNK}
             enableSystem
             disableTransitionOnChange
+            themes={[THEMES.LIGHT, THEMES.DARK, THEMES.CYBERPUNK]}
           >
             <SiteHeader />
             {children}
