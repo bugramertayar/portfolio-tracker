@@ -8,6 +8,9 @@ import { AddIncomeDialog } from "@/components/income/add-income-dialog"
 import { IncomeMatrix } from "@/components/income/income-matrix"
 import { IncomeHistoryTable } from "@/components/income/income-history-table"
 import { Loader2 } from "lucide-react"
+import { IncomeMatrixSkeleton, TableSkeleton } from "@/components/skeletons/app-skeletons"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
@@ -45,14 +48,6 @@ export default function IncomeTrackerPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
-  }
-
   if (!userId) {
     return null; // Or redirect
   }
@@ -69,12 +64,27 @@ export default function IncomeTrackerPage() {
         <AddIncomeDialog userId={userId} onSuccess={() => fetchIncomes(userId)} />
       </div>
 
-      <IncomeMatrix 
-        data={incomes} 
-        onEdit={() => userId && fetchIncomes(userId)} 
-      />
+      {loading ? (
+        <IncomeMatrixSkeleton />
+      ) : (
+        <IncomeMatrix 
+          data={incomes} 
+          onEdit={() => userId && fetchIncomes(userId)} 
+        />
+      )}
       
-      <IncomeHistoryTable incomes={incomes} />
+      {loading ? (
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle><Skeleton className="h-6 w-[150px]" /></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TableSkeleton />
+          </CardContent>
+        </Card>
+      ) : (
+        <IncomeHistoryTable incomes={incomes} />
+      )}
     </div>
   )
 }

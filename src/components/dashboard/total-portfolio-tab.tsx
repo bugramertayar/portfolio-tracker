@@ -12,15 +12,14 @@ import { calculateDistribution } from "@/lib/calculations"
 import { AssetCategory } from "@/types/portfolio.types"
 
 import { AddAssetDialog } from "./add-asset-dialog"
+import { SummaryCardsSkeleton, ChartSkeleton, TableSkeleton } from "@/components/skeletons/app-skeletons"
 
 export function TotalPortfolioTab({ userId }: { userId: string }) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { items, summary, isLoading: isPortfolioLoading } = usePortfolioStore()
   const { transactions, isLoading: isTransactionsLoading, refreshTransactions } = useTransactionStore()
 
-  if (isPortfolioLoading || isTransactionsLoading) {
-    return <div>Loading...</div>
-  }
+
 
   // Prepare chart data
   // For Total tab, we want distribution by Category or by Asset?
@@ -40,38 +39,50 @@ export function TotalPortfolioTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
-      <SummaryCards summary={summary} />
+      {isPortfolioLoading ? <SummaryCardsSkeleton /> : <SummaryCards summary={summary} />}
       
       <div className={`grid gap-4 grid-cols-1 ${
+        isPortfolioLoading ? 'md:grid-cols-2 lg:grid-cols-4' :
         activeCategories.length + 1 === 2 ? 'lg:grid-cols-2' :
         activeCategories.length + 1 === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
         activeCategories.length + 1 >= 4 ? 'md:grid-cols-2 lg:grid-cols-4' : ''
       }`}>
-        {/* Individual Category Charts */}
-        {activeCategories.map(category => (
-          <PortfolioChart 
-            key={category}
-            data={items
-              .filter(item => item.category === category)
-              .map(item => ({ name: item.symbol, value: item.currentValue || 0 }))}
-            title={`${
-              category === AssetCategory.BIST100 ? 'BIST 100' : 
-              category === AssetCategory.US_MARKETS ? 'US Markets' : 
-              'Precious Metals'
-            } Distribution`}
-            currency={category === AssetCategory.US_MARKETS ? 'USD' : 'TRY'}
-            className="col-span-1"
-          />
-        ))}
-
-        {/* Total Portfolio Chart */}
-        <PortfolioChart 
-          data={chartData} 
-          title="Portfolio Distribution by Category" 
-          currency="TRY" // Total is in TRY
-          valueType="percentage"
-          className="col-span-1"
-        />
+        {isPortfolioLoading ? (
+          <>
+            <ChartSkeleton />
+            <ChartSkeleton />
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : (
+          <>
+            {/* Individual Category Charts */}
+            {activeCategories.map(category => (
+              <PortfolioChart 
+                key={category}
+                data={items
+                  .filter(item => item.category === category)
+                  .map(item => ({ name: item.symbol, value: item.currentValue || 0 }))}
+                title={`${
+                  category === AssetCategory.BIST100 ? 'BIST 100' : 
+                  category === AssetCategory.US_MARKETS ? 'US Markets' : 
+                  'Precious Metals'
+                } Distribution`}
+                currency={category === AssetCategory.US_MARKETS ? 'USD' : 'TRY'}
+                className="col-span-1"
+              />
+            ))}
+    
+            {/* Total Portfolio Chart */}
+            <PortfolioChart 
+              data={chartData} 
+              title="Portfolio Distribution by Category" 
+              currency="TRY" // Total is in TRY
+              valueType="percentage"
+              className="col-span-1"
+            />
+          </>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -81,11 +92,12 @@ export function TotalPortfolioTab({ userId }: { userId: string }) {
             <AddAssetDialog userId={userId} />
           </CardHeader>
           <CardContent>
-            <PortfolioTable items={items} currency="TRY" />
+            {isPortfolioLoading ? <TableSkeleton /> : <PortfolioTable items={items} currency="TRY" />}
           </CardContent>
         </Card>
         <Card className="col-span-3">
           <CardContent className="pt-6">
+            {isTransactionsLoading ? <TableSkeleton /> : (
             <TransactionsTable 
               transactions={transactions.slice(0, 5)} 
               currency="TRY"
@@ -104,6 +116,7 @@ export function TotalPortfolioTab({ userId }: { userId: string }) {
               }}
               isRefreshing={isRefreshing}
             />
+            )}
           </CardContent>
         </Card>
       </div>

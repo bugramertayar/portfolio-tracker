@@ -14,10 +14,10 @@ import { onAuthStateChanged } from "firebase/auth"
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+
   
-  const { fetchPortfolio, isLoading: isPortfolioLoading } = usePortfolioStore()
-  const { fetchTransactions, isLoading: isTransactionsLoading } = useTransactionStore()
+  const { fetchPortfolio } = usePortfolioStore()
+  const { fetchTransactions } = useTransactionStore()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -28,7 +28,6 @@ export default function DashboardPage() {
       } else {
         router.push("/login")
       }
-      setLoading(false)
     })
 
     return () => unsubscribe()
@@ -44,14 +43,6 @@ export default function DashboardPage() {
     } catch (error) {
       toast.error("Failed to logout")
     }
-  }
-
-  if (loading || isPortfolioLoading || isTransactionsLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
   }
 
   if (!user) return null

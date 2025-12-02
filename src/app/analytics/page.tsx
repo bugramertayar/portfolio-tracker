@@ -12,6 +12,8 @@ import { FirestoreService } from "@/lib/firestore.service"
 import { getHistoricalPricesAction } from "@/app/actions/portfolio"
 import { calculatePortfolioHistory, HistoricalDataPoint, PriceHistoryMap } from "@/lib/analytics-utils"
 import { subDays, subMonths, subYears, format } from "date-fns"
+import { SummaryCardsSkeleton } from "@/components/skeletons/app-skeletons"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type TimeRange = '1D' | '1W' | '1M' | '1Y' | '3Y' | '5Y'
 type Category = 'ALL' | 'BIST100' | 'US_STOCKS' | 'METALS'
@@ -135,13 +137,7 @@ export default function AnalyticsPage() {
     fetchData()
   }, [userId, timeRange])
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
-  }
+  if (!userId) return null
 
   const ranges: TimeRange[] = ['1D', '1W', '1M', '1Y', '3Y', '5Y']
   const categories: { id: Category; label: string; color: string }[] = [
@@ -219,7 +215,9 @@ export default function AnalyticsPage() {
       </div>
       
       {/* Percentage Change Cards */}
-      {!dataLoading && !error && data.length > 0 && (
+      {dataLoading ? (
+        <SummaryCardsSkeleton />
+      ) : !error && data.length > 0 && (
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="shadow-md border-border/40">
             <CardHeader>
@@ -289,8 +287,8 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent className="pl-2">
             {dataLoading ? (
-              <div className="h-[400px] w-full flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
+              <div className="h-[400px] w-full">
+                <Skeleton className="h-full w-full rounded-xl" />
               </div>
             ) : error ? (
               <div className="h-[400px] w-full flex items-center justify-center text-destructive">
