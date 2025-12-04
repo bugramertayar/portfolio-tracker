@@ -22,6 +22,9 @@ interface TransactionsTableProps {
   onRefresh?: () => void
   isRefreshing?: boolean
   userId?: string
+  onLoadMore?: () => void
+  hasMore?: boolean
+  isLoadingMore?: boolean
 }
 
 export function TransactionsTable({ 
@@ -29,7 +32,10 @@ export function TransactionsTable({
   currency = 'TRY',
   onRefresh,
   isRefreshing = false,
-  userId
+  userId,
+  onLoadMore,
+  hasMore = false,
+  isLoadingMore = false
 }: TransactionsTableProps) {
   return (
     <div className="space-y-4">
@@ -96,6 +102,18 @@ export function TransactionsTable({
           </TableBody>
         </Table>
       </div>
+      {hasMore && onLoadMore && (
+        <div className="flex justify-center">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onLoadMore}
+            disabled={isLoadingMore || isRefreshing}
+          >
+            {isLoadingMore ? "Loading..." : "Load More"}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

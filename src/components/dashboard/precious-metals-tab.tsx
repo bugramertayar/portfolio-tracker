@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { usePortfolioStore } from "@/store/portfolio.store"
 import { useTransactionStore } from "@/store/transaction.store"
 import { PortfolioChart } from "./portfolio-chart"
@@ -9,10 +9,15 @@ import { TransactionsTable } from "./transactions-table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AssetCategory } from "@/types/portfolio.types"
 
-export function PreciousMetalsTab() {
+export function PreciousMetalsTab({ userId }: { userId: string }) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { items } = usePortfolioStore()
-  const { transactions, refreshTransactions } = useTransactionStore()
+  const { transactions, refreshTransactions, hasMore, fetchTransactions, isLoading: isTransactionsLoading } = useTransactionStore()
+
+  // Fetch transactions on mount
+  useEffect(() => {
+    fetchTransactions(userId, AssetCategory.PRECIOUS_METALS)
+  }, [userId, fetchTransactions])
 
   const filteredItems = items.filter(item => item.category === AssetCategory.PRECIOUS_METALS)
   const filteredTransactions = transactions.filter(t => t.category === AssetCategory.PRECIOUS_METALS)
@@ -45,7 +50,7 @@ export function PreciousMetalsTab() {
         <Card className="col-span-3">
           <CardContent className="pt-6">
             <TransactionsTable 
-              transactions={filteredTransactions.slice(0, 5)} 
+              transactions={filteredTransactions} 
               currency="TRY"
               onRefresh={async () => {
                 setIsRefreshing(true)
@@ -59,6 +64,9 @@ export function PreciousMetalsTab() {
                 }
               }}
               isRefreshing={isRefreshing}
+              hasMore={hasMore}
+              onLoadMore={() => fetchTransactions(userId, AssetCategory.PRECIOUS_METALS, true)}
+              isLoadingMore={isTransactionsLoading && filteredTransactions.length > 0}
             />
           </CardContent>
         </Card>

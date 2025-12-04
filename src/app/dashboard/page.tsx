@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { logout } from "@/lib/auth"
 import { toast } from "sonner"
 import { usePortfolioStore } from "@/store/portfolio.store"
-import { useTransactionStore } from "@/store/transaction.store"
 import { DashboardTabs } from "@/components/dashboard/tabs"
 import { Loader2 } from "lucide-react"
 import { auth } from "@/lib/firebase"
@@ -17,14 +16,12 @@ export default function DashboardPage() {
 
   
   const { fetchPortfolio } = usePortfolioStore()
-  const { fetchTransactions } = useTransactionStore()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser)
         fetchPortfolio(currentUser.uid)
-        fetchTransactions(currentUser.uid)
       } else {
         router.push("/login")
       }

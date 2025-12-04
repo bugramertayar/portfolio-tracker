@@ -32,13 +32,13 @@ export function DashboardTabs({ userId }: { userId: string }) {
         <TotalPortfolioTab userId={userId} />
       </TabsContent>
       <TabsContent value="bist100" className="space-y-4">
-        <Bist100Tab />
+        <Bist100Tab userId={userId} />
       </TabsContent>
       <TabsContent value="us-markets" className="space-y-4">
-        <UsMarketsTab />
+        <UsMarketsTab userId={userId} />
       </TabsContent>
       <TabsContent value="precious-metals" className="space-y-4">
-        <PreciousMetalsTab />
+        <PreciousMetalsTab userId={userId} />
       </TabsContent>
     </Tabs>
   )

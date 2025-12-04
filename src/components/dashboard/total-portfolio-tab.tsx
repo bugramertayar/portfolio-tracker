@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { usePortfolioStore } from "@/store/portfolio.store"
 import { useTransactionStore } from "@/store/transaction.store"
 import { PortfolioChart } from "./portfolio-chart"
@@ -17,8 +17,12 @@ import { SummaryCardsSkeleton, ChartSkeleton, TableSkeleton } from "@/components
 export function TotalPortfolioTab({ userId }: { userId: string }) {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { items, summary, isLoading: isPortfolioLoading } = usePortfolioStore()
-  const { transactions, isLoading: isTransactionsLoading, refreshTransactions } = useTransactionStore()
+  const { transactions, isLoading: isTransactionsLoading, refreshTransactions, hasMore, fetchTransactions } = useTransactionStore()
 
+  // Fetch transactions on mount
+  useEffect(() => {
+    fetchTransactions(userId)
+  }, [userId, fetchTransactions])
 
 
   // Prepare chart data
@@ -97,9 +101,9 @@ export function TotalPortfolioTab({ userId }: { userId: string }) {
         </Card>
         <Card className="col-span-3">
           <CardContent className="pt-6">
-            {isTransactionsLoading ? <TableSkeleton /> : (
+            {isTransactionsLoading && transactions.length === 0 ? <TableSkeleton /> : (
             <TransactionsTable 
-              transactions={transactions.slice(0, 5)} 
+              transactions={transactions} 
               currency="TRY"
               userId={userId}
               onRefresh={async () => {
@@ -115,6 +119,9 @@ export function TotalPortfolioTab({ userId }: { userId: string }) {
                 }
               }}
               isRefreshing={isRefreshing}
+              hasMore={hasMore}
+              onLoadMore={() => fetchTransactions(userId, undefined, true)}
+              isLoadingMore={isTransactionsLoading && transactions.length > 0}
             />
             )}
           </CardContent>

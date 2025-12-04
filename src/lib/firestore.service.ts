@@ -11,7 +11,10 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  Timestamp
+  Timestamp,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { 
@@ -213,6 +216,41 @@ export const FirestoreService = {
       return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
     } catch (error) {
       console.error("Error fetching transactions:", error);
+      throw error;
+    }
+  },
+
+  async getPaginatedTransactions(
+    userId: string, 
+    category?: AssetCategory,
+    limitCount: number = 10, 
+    lastVisible?: QueryDocumentSnapshot
+  ): Promise<{ transactions: Transaction[], lastVisible: QueryDocumentSnapshot | null }> {
+    try {
+      let constraints: any[] = [orderBy("date", "desc")];
+      
+      if (category) {
+        constraints = [where("category", "==", category), ...constraints];
+      }
+      
+      if (lastVisible) {
+        constraints.push(startAfter(lastVisible));
+      }
+      
+      constraints.push(limit(limitCount));
+
+      const q = query(
+        collection(db, USERS_COLLECTION, userId, TRANSACTIONS_COLLECTION),
+        ...constraints
+      );
+
+      const querySnapshot = await getDocs(q);
+      const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+      const transactions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
+      
+      return { transactions, lastVisible: lastVisibleDoc };
+    } catch (error) {
+      console.error("Error fetching paginated transactions:", error);
       throw error;
     }
   },
