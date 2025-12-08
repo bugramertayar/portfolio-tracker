@@ -101,7 +101,7 @@ export function PortfolioTable({ items, currency = 'TRY' }: PortfolioTableProps)
             sortedItems.map((item) => (
               <TableRow key={item.id || item.symbol}>
                 <TableCell className="font-medium">{item.symbol}</TableCell>
-                <TableCell>{item.quantity.toFixed(4).replace(/\.?0+$/, '')}</TableCell>
+                <TableCell>{Math.floor(item.quantity)}</TableCell>
                 <TableCell>{formatCurrency(item.averageCost, item.currency || currency)}</TableCell>
                 <TableCell>{formatCurrency(item.currentPrice || 0, item.currency || currency)}</TableCell>
                 <TableCell>{formatCurrency(item.currentValue || 0, item.currency || currency)}</TableCell>

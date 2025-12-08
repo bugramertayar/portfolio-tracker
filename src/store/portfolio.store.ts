@@ -87,7 +87,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
       // Update items with new prices and calculate values
       const updatedItems = items.map(item => {
         const currentPrice = prices[item.symbol] || item.averageCost; // Fallback to cost if no price
-        const currentValue = item.quantity * currentPrice;
+        const currentValue = Math.floor(item.quantity) * currentPrice;
         // Profit = Current Value - Total Cost + Cash Dividends (not reinvested)
         const profit = currentValue - item.totalCost + (item.cashDividends || 0);
         const profitPercentage = item.totalCost > 0 ? (profit / item.totalCost) * 100 : 0;

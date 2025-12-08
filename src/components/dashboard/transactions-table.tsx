@@ -87,8 +87,8 @@ export function TransactionsTable({
                   <TableCell className="font-medium">{transaction.symbol}</TableCell>
                   <TableCell>
                     {transaction.type === 'DIVIDEND' 
-                      ? (transaction.isDividendReinvested ? `${(transaction.total / transaction.price).toFixed(4).replace(/\.?0+$/, '')}` : '-')
-                      : transaction.quantity}
+                      ? (transaction.isDividendReinvested ? `${Math.floor(transaction.total / transaction.price)}` : '-')
+                      : Math.floor(transaction.quantity)}
                   </TableCell>
                   <TableCell>
                     {transaction.type === 'DIVIDEND' 

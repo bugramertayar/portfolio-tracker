@@ -102,7 +102,7 @@ export const FirestoreService = {
             symbol: transactionData.symbol,
             name: transactionData.symbol, // Ideally we get name from asset metadata
             category: transactionData.category,
-            quantity: transactionData.quantity,
+            quantity: Math.floor(transactionData.quantity),
             averageCost: transactionData.price,
             totalCost: transactionData.total,
             updatedAt: Date.now()
@@ -121,17 +121,18 @@ export const FirestoreService = {
           let newReinvestedDividends = currentData.reinvestedDividends || 0;
 
           if (transactionData.type === 'BUY') {
-            newQuantity += transactionData.quantity;
+            newQuantity += Math.floor(transactionData.quantity);
             newTotalCost += transactionData.total;
           } else if (transactionData.type === 'SELL') {
             // SELL
-            if (currentData.quantity < transactionData.quantity) {
+            const sellQuantity = Math.floor(transactionData.quantity);
+            if (currentData.quantity < sellQuantity) {
               throw new Error("Insufficient quantity to sell");
             }
-            newQuantity -= transactionData.quantity;
+            newQuantity -= sellQuantity;
             // For sell, we reduce total cost proportionally to keep average cost same
             const costPerShare = currentData.totalCost / currentData.quantity;
-            newTotalCost -= (costPerShare * transactionData.quantity);
+            newTotalCost -= (costPerShare * sellQuantity);
           } else if (transactionData.type === 'DIVIDEND') {
             // Track total dividends for display
             newTotalDividends += transactionData.total;
@@ -143,7 +144,8 @@ export const FirestoreService = {
               // Only increase quantity based on reinvestment price
               // Note: transactionData.price should be the price at which dividend was reinvested
               if (transactionData.price > 0) {
-                const additionalShares = transactionData.total / transactionData.price;
+                // Floor the additional shares to avoid fractional shares
+                const additionalShares = Math.floor(transactionData.total / transactionData.price);
                 newQuantity += additionalShares;
               }
               // New average cost will be: original totalCost / new quantity
