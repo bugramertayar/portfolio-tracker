@@ -141,13 +141,14 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
       const { FirestoreService } = await import("@/lib/firestore.service");
       await FirestoreService.addTransaction(userId, transactionData);
       
-      // Refresh both portfolio and transactions
-      await fetchPortfolio(userId);
-      await refreshTransactions(userId);
-      
+      // Close dialog immediately for better UX
       toast.success("Transaction added successfully")
       setOpen(false)
       form.reset()
+      
+      // Refresh both portfolio and transactions in the background
+      fetchPortfolio(userId);
+      refreshTransactions(userId);
     } catch (error: any) {
       toast.error("Failed to add transaction: " + error.message)
     }
