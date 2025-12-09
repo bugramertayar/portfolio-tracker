@@ -20,6 +20,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import {
@@ -57,7 +58,7 @@ interface AddIncomeDialogProps {
 
 export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
   const [open, setOpen] = useState(false)
-  const { items } = usePortfolioStore()
+  const { items, fetchPortfolio } = usePortfolioStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,6 +77,8 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const amount = parseFloat(values.amount);
+      
+      // Add income entries for each selected month
       const promises = values.months.map(month => 
         FirestoreService.addIncome(userId, {
           year: parseInt(values.year),
@@ -88,6 +91,33 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
       );
 
       await Promise.all(promises);
+      
+      // If this is a dividend with a company selected, update the portfolio item
+      if (values.category === "Dividend" && values.company) {
+        try {
+          // Get the current portfolio item
+          const portfolioItem = await FirestoreService.getPortfolioItem(userId, values.company);
+          
+          if (portfolioItem) {
+            // Calculate total dividend amount (sum for all selected months)
+            const totalDividendAmount = amount * values.months.length;
+            
+            // Update portfolio item with new dividend amounts
+            await FirestoreService.updatePortfolioItemDividends(
+              userId,
+              values.company,
+              totalDividendAmount
+            );
+            
+            // Refresh portfolio to show updated dividends
+            fetchPortfolio(userId);
+          }
+        } catch (portfolioError) {
+          console.error("Error updating portfolio dividends:", portfolioError);
+          // Don't fail the whole operation if portfolio update fails
+          toast.warning("Income added, but portfolio update failed");
+        }
+      }
       
       toast.success("Income added successfully");
       setOpen(false);
@@ -215,6 +245,11 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+                  {category === "Dividend" && (
+                    <FormDescription className="text-blue-600 dark:text-blue-400">
+                      💡 <strong>Tip:</strong> If you select a company below, this dividend will be automatically added to your Holdings table as cash dividend. For more advanced options (reinvestment, specific dates), use "Add Transaction" instead.
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

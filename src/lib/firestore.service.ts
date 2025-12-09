@@ -62,6 +62,30 @@ export const FirestoreService = {
     }
   },
 
+  async updatePortfolioItemDividends(userId: string, symbol: string, dividendAmount: number): Promise<void> {
+    try {
+      const docRef = doc(db, USERS_COLLECTION, userId, PORTFOLIOS_COLLECTION, symbol);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error(`Portfolio item ${symbol} not found`);
+      }
+      
+      const currentData = docSnap.data() as PortfolioItem;
+      const newTotalDividends = (currentData.totalDividends || 0) + dividendAmount;
+      const newCashDividends = (currentData.cashDividends || 0) + dividendAmount;
+      
+      await updateDoc(docRef, {
+        totalDividends: newTotalDividends,
+        cashDividends: newCashDividends,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      console.error("Error updating portfolio item dividends:", error);
+      throw error;
+    }
+  },
+
   // Transaction Operations
   async addTransaction(
     userId: string, 
