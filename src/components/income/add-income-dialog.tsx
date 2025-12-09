@@ -167,7 +167,7 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
                   <FormLabel>Year</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select year" />
                       </SelectTrigger>
                     </FormControl>
@@ -233,7 +233,7 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
                   <FormLabel>Category</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                     </FormControl>

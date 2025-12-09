@@ -176,7 +176,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                   <FormLabel>Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                     </FormControl>
@@ -198,7 +198,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                   <FormLabel>Asset</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select asset" />
                       </SelectTrigger>
                     </FormControl>
