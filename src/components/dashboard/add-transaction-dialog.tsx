@@ -204,7 +204,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                     <SelectContent>
                       {items.map((item) => (
                         <SelectItem key={item.symbol} value={item.symbol}>
-                          {item.symbol} ({item.quantity})
+                          {item.symbol} ({Math.floor(item.quantity)})
                         </SelectItem>
                       ))}
                     </SelectContent>
