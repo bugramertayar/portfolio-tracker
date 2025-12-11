@@ -69,6 +69,7 @@ export default function IncomeTrackerPage() {
       ) : (
         <IncomeMatrix 
           data={incomes} 
+          userId={userId}
           onEdit={() => userId && fetchIncomes(userId)} 
         />
       )}

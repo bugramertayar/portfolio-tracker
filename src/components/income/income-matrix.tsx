@@ -12,10 +12,12 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { IncomeDetailsDialog } from "./income-details-dialog"
+import { AddIncomeDialog } from "./add-income-dialog"
 
 interface IncomeMatrixProps {
   data: IncomeEntry[];
   onEdit?: (entry: IncomeEntry) => void;
+  userId: string;
 }
 
 const MONTHS = [
@@ -23,8 +25,9 @@ const MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
 
-export function IncomeMatrix({ data, onEdit }: IncomeMatrixProps) {
+export function IncomeMatrix({ data, onEdit, userId }: IncomeMatrixProps) {
   const [selectedCell, setSelectedCell] = useState<{year: number, month: number, entries: IncomeEntry[]} | null>(null);
+  const [addIncomeCell, setAddIncomeCell] = useState<{year: number, month: number} | null>(null);
 
   // Get unique years from data
   const dataYears = Array.from(new Set(data.map(d => d.year)));
@@ -91,14 +94,16 @@ export function IncomeMatrix({ data, onEdit }: IncomeMatrixProps) {
                         <TooltipTrigger asChild>
                           <div
                             className={cn(
-                              "h-10 flex items-center justify-center rounded-md border text-sm transition-colors",
+                              "h-10 flex items-center justify-center rounded-md border text-sm transition-colors cursor-pointer",
                               hasData 
-                                ? "bg-primary/10 hover:bg-primary/20 cursor-pointer font-medium text-primary" 
-                                : "bg-muted/20 text-muted-foreground/50"
+                                ? "bg-primary/10 hover:bg-primary/20 font-medium text-primary" 
+                                : "bg-muted/20 text-muted-foreground/50 hover:bg-muted/30"
                             )}
                             onClick={() => {
                               if (hasData) {
                                 setSelectedCell({ year, month: monthIndex, entries });
+                              } else {
+                                setAddIncomeCell({ year, month: monthIndex });
                               }
                             }}
                           >
@@ -149,6 +154,22 @@ export function IncomeMatrix({ data, onEdit }: IncomeMatrixProps) {
           onUpdate={() => {
             setSelectedCell(null);
             if (onEdit) onEdit(selectedCell.entries[0]); // Trigger refresh in parent
+          }}
+        />
+      )}
+
+      {addIncomeCell && (
+        <AddIncomeDialog
+          userId={userId}
+          initialYear={addIncomeCell.year}
+          initialMonth={addIncomeCell.month}
+          isOpen={!!addIncomeCell}
+          onOpenChange={(open) => {
+            if (!open) setAddIncomeCell(null);
+          }}
+          onSuccess={() => {
+            setAddIncomeCell(null);
+            if (onEdit) onEdit({} as IncomeEntry); // Trigger refresh in parent
           }}
         />
       )}

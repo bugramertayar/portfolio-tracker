@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -54,23 +54,43 @@ const MONTHS = [
 interface AddIncomeDialogProps {
   userId: string;
   onSuccess: () => void;
+  initialYear?: number;
+  initialMonth?: number;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
-  const [open, setOpen] = useState(false)
+export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, isOpen, onOpenChange }: AddIncomeDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const { items, fetchPortfolio } = usePortfolioStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      year: new Date().getFullYear().toString(),
-      months: [],
+      year: initialYear?.toString() || new Date().getFullYear().toString(),
+      months: initialMonth !== undefined ? [initialMonth] : [],
       amount: "",
       category: "",
       description: "",
       company: "",
     },
   })
+
+  // Reset form when dialog opens with initial values
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        year: initialYear?.toString() || new Date().getFullYear().toString(),
+        months: initialMonth !== undefined ? [initialMonth] : [],
+        amount: "",
+        category: "",
+        description: "",
+        company: "",
+      });
+    }
+  }, [open, initialYear, initialMonth, form]);
 
   const category = form.watch("category");
 
@@ -147,9 +167,11 @@ export function AddIncomeDialog({ userId, onSuccess }: AddIncomeDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Add Income</Button>
-      </DialogTrigger>
+      {isOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button>Add Income</Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Income</DialogTitle>
