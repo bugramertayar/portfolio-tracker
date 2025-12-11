@@ -284,8 +284,45 @@ export const FirestoreService = {
   // Income Operations
   async addIncome(userId: string, data: Omit<IncomeEntry, "id" | "userId" | "createdAt">) {
     try {
+      // Validate required fields
+      if (!userId || typeof userId !== 'string') {
+        throw new Error("Invalid userId");
+      }
+      
+      if (!data || typeof data !== 'object') {
+        throw new Error("Invalid income data");
+      }
+      
+      if (typeof data.year !== 'number' || data.year < 2000 || data.year > 2100) {
+        throw new Error("Invalid year");
+      }
+      
+      if (typeof data.month !== 'number' || data.month < 0 || data.month > 11) {
+        throw new Error("Invalid month");
+      }
+      
+      if (typeof data.amount !== 'number' || data.amount <= 0) {
+        throw new Error("Invalid amount");
+      }
+      
+      if (!data.category || typeof data.category !== 'string') {
+        throw new Error("Invalid category");
+      }
+      
+      // Clean undefined, null, and empty string values (Firestore doesn't accept undefined)
+      const cleanedData = Object.fromEntries(
+        Object.entries(data).filter(([key, value]) => {
+          // Keep all required fields
+          if (['year', 'month', 'amount', 'category'].includes(key)) {
+            return true;
+          }
+          // For optional fields, filter out undefined, null, and empty strings
+          return value !== undefined && value !== null && value !== '';
+        })
+      );
+      
       const docRef = await addDoc(collection(db, INCOMES_COLLECTION), {
-        ...data,
+        ...cleanedData,
         userId,
         createdAt: Timestamp.now(),
       });
