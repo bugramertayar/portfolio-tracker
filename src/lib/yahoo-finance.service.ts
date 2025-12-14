@@ -110,5 +110,47 @@ export const YahooFinanceService = {
       console.error(`Error fetching historical prices for ${symbol}:`, error);
       return [];
     }
+  },
+  async getQuotesWithData(symbols: string[]): Promise<Record<string, { price: number, change: number, changePercent: number, currency: string, symbol: string }>> {
+    const results: Record<string, { price: number, change: number, changePercent: number, currency: string, symbol: string }> = {};
+    
+    if (symbols.length === 0) {
+      return results;
+    }
+
+    try {
+      const quotes = await Promise.all(
+        symbols.map(symbol => (yahooFinance.quote(symbol) as Promise<any>).catch(() => null))
+      );
+
+      quotes.forEach((quote, index) => {
+        const symbol = symbols[index];
+        if (quote) {
+          const price = (quote as any).regularMarketPrice || (quote as any).currentPrice || 0;
+          const change = (quote as any).regularMarketChange || 0;
+          const changePercent = (quote as any).regularMarketChangePercent || 0;
+          const currency = (quote as any).currency || 'USD';
+          
+          results[symbol] = {
+            price,
+            change,
+            changePercent,
+            currency,
+            symbol
+          };
+          
+          // Also update the simple price cache since we have the data
+          priceCache[symbol] = {
+            price,
+            timestamp: Date.now()
+          };
+        }
+      });
+
+      return results;
+    } catch (error) {
+      console.error("Error fetching quotes with data:", error);
+      return results;
+    }
   }
 };

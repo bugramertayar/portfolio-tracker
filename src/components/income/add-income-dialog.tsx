@@ -44,6 +44,7 @@ const formSchema = z.object({
   category: z.string().min(1, "Category is required"),
   description: z.string().optional(),
   company: z.string().optional(),
+  exchangeRate: z.string().optional(),
 })
 
 const MONTHS = [
@@ -65,6 +66,7 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
   const open = isOpen !== undefined ? isOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
   const { items, fetchPortfolio } = usePortfolioStore()
+  const [currentRate, setCurrentRate] = useState<number>(0)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,12 +77,14 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
       category: "",
       description: "",
       company: "",
+      exchangeRate: "",
     },
   })
 
-  // Reset form when dialog opens with initial values
+  // Fetch exchange rate and reset form when dialog opens
   useEffect(() => {
     if (open) {
+      // Set initial values
       form.reset({
         year: initialYear?.toString() || new Date().getFullYear().toString(),
         months: initialMonth !== undefined ? [initialMonth] : [],
@@ -88,7 +92,25 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
         category: "",
         description: "",
         company: "",
+        exchangeRate: "",
       });
+
+      // Fetch current rate
+      const fetchRate = async () => {
+        try {
+          const { getExchangeRateAction } = await import("@/app/actions/portfolio");
+          const rateRes = await getExchangeRateAction();
+          if (rateRes.success && rateRes.data) {
+            const rate = rateRes.data;
+            setCurrentRate(rate);
+            // Default populate
+            form.setValue("exchangeRate", rate.toString());
+          }
+        } catch (error) {
+          console.error("Failed to fetch exchange rate", error);
+        }
+      };
+      fetchRate();
     }
   }, [open, initialYear, initialMonth, form]);
 
@@ -101,12 +123,22 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
       // Calculate USD Amount
       let amountUsd = 0;
       try {
-        const { getExchangeRateAction } = await import("@/app/actions/portfolio");
-        const rateRes = await getExchangeRateAction();
-        // Assuming manual input is always TRY for now as no currency selector exists in this dialog
-        // If we want to be safe, we could assume TRY if no currency field
-        if (rateRes.success && rateRes.data) {
-           amountUsd = amount / (rateRes.data as number);
+        let rateToUse = currentRate;
+        const customRate = parseFloat(values.exchangeRate || "0");
+        if (!isNaN(customRate) && customRate > 0) {
+          rateToUse = customRate;
+        } else {
+           if (rateToUse === 0) {
+              const { getExchangeRateAction } = await import("@/app/actions/portfolio");
+              const rateRes = await getExchangeRateAction();
+              if (rateRes.success && rateRes.data) {
+                rateToUse = rateRes.data;
+              }
+           }
+        }
+
+        if (rateToUse > 0) {
+           amountUsd = amount / rateToUse;
         }
       } catch (e) {
         console.error("Failed to fetch rate for income", e);
@@ -156,14 +188,7 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
       
       toast.success("Income added successfully");
       setOpen(false);
-      form.reset({
-        year: new Date().getFullYear().toString(),
-        months: [],
-        amount: "",
-        category: "",
-        description: "",
-        company: "",
-      });
+      // Form reset is handled by useEffect on open
       onSuccess();
     } catch (error) {
       toast.error("Failed to add income");
@@ -227,7 +252,7 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Months</FormLabel>
-                  <div className="grid grid-cols-4 gap-2">
+                   <div className="grid grid-cols-4 gap-2">
                     {MONTHS.map((month, index) => (
                       <Button
                         key={month}
@@ -253,14 +278,37 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel>Amount (TRY)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" placeholder="0.00" autoComplete="off" {...field} />
+                    <Input type="number" step="any" placeholder="0.00" autoComplete="off" className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            <FormField
+               control={form.control}
+               name="exchangeRate"
+               render={({ field }) => (
+                 <FormItem>
+                   <FormLabel>USD Exchange Rate (Optional)</FormLabel>
+                   <FormControl>
+                     <Input 
+                        type="number" 
+                        step="any" 
+                        placeholder={currentRate > 0 ? currentRate.toFixed(2) : "Fetching..."}
+                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                        {...field} 
+                     />
+                   </FormControl>
+                   <FormDescription>
+                     Current exchange rate is selected by default. You can change it if you want.
+                   </FormDescription>
+                   <FormMessage />
+                 </FormItem>
+               )}
+             />
 
             <FormField
               control={form.control}

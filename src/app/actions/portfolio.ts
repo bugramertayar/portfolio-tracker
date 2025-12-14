@@ -41,3 +41,13 @@ export async function getExchangeRateAction() {
     return { success: false, error: error.message };
   }
 }
+
+export async function getMarketDataAction(symbols: string[]) {
+  try {
+    const data = await YahooFinanceService.getQuotesWithData(symbols);
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Server Action Error (Market Data):", error);
+    return { success: false, error: error.message };
+  }
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -45,8 +45,10 @@ const formSchema = z.object({
   totalAmount: z.string().optional(),
   date: z.date(),
   isDividendReinvested: z.boolean().optional(),
+  exchangeRate: z.string().optional(),
 }).refine((data) => {
   if (data.type === "DIVIDEND") {
+// ... existing refinement logic
     const hasAmount = !!data.totalAmount && parseFloat(data.totalAmount) > 0;
     // If reinvested, also need price
     if (data.isDividendReinvested) {
@@ -64,6 +66,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false)
   const { items, fetchPortfolio } = usePortfolioStore()
   const { refreshTransactions } = useTransactionStore()
+  const [currentRate, setCurrentRate] = useState<number>(0)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema) as any,
@@ -75,8 +78,33 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
       totalAmount: "",
       date: new Date(),
       isDividendReinvested: false,
+      exchangeRate: "",
     },
   })
+
+  // Fetch exchange rate when dialog opens
+  useEffect(() => {
+    if (open) {
+      const fetchRate = async () => {
+        try {
+          const { getExchangeRateAction } = await import("@/app/actions/portfolio");
+          const rateRes = await getExchangeRateAction();
+          if (rateRes.success && rateRes.data) {
+            const rate = rateRes.data;
+            setCurrentRate(rate);
+            // Only set if user hasn't typed anything yet (or initial load)
+            const currentVal = form.getValues("exchangeRate");
+            if (!currentVal) {
+              form.setValue("exchangeRate", rate.toString());
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch exchange rate", error);
+        }
+      };
+      fetchRate();
+    }
+  }, [open, form]);
 
   const transactionType = form.watch("type")
   const isDividendReinvested = form.watch("isDividendReinvested")
@@ -134,14 +162,24 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         if (selectedAsset?.category === "US_MARKETS") {
           totalUsdValue = total;
         } else {
-          const { getExchangeRateAction } = await import("@/app/actions/portfolio");
-          const rateRes = await getExchangeRateAction();
-          const usdTryRate = rateRes.success ? rateRes.data : undefined;
+          // Use custom exchange rate if provided, otherwise fallback to fetched current rate
+          let rateToUse = currentRate;
+          const customRate = parseFloat(values.exchangeRate || "0");
+          if (!isNaN(customRate) && customRate > 0) {
+            rateToUse = customRate;
+          } else {
+            // If custom rate is empty/invalid, try to fetch fresh rate if currentRate is 0
+             if (rateToUse === 0) {
+                const { getExchangeRateAction } = await import("@/app/actions/portfolio");
+                const rateRes = await getExchangeRateAction();
+                if (rateRes.success && rateRes.data) {
+                  rateToUse = rateRes.data;
+                }
+             }
+          }
           
-          // USDTRY=X is ~35 (1 USD = 35 TRY)
-          // So Total TRY / Rate = Total USD
-          if (usdTryRate && usdTryRate > 0) {
-            totalUsdValue = total / (usdTryRate as number);
+          if (rateToUse > 0) {
+            totalUsdValue = total / rateToUse;
           }
         }
       } catch (error) {
@@ -215,6 +253,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                 </FormItem>
               )}
             />
+            {/* ... keeping symbol field ... */}
             <FormField
               control={form.control}
               name="symbol"
@@ -239,6 +278,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="date"
@@ -258,14 +298,38 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total Dividend Amount</FormLabel>
+                      <FormLabel>Total Dividend Amount (TRY)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="any" placeholder="0.00" {...field} />
+                        <Input type="number" step="any" placeholder="0.00" className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                
+                <FormField
+                   control={form.control}
+                   name="exchangeRate"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>USD Exchange Rate (Optional)</FormLabel>
+                       <FormControl>
+                         <Input 
+                            type="number" 
+                            step="any" 
+                            placeholder={currentRate > 0 ? currentRate.toFixed(2) : "Fetching..."} 
+                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            {...field} 
+                         />
+                       </FormControl>
+                       <FormDescription>
+                         Current exchange rate is selected by default. You can change it if you want.
+                       </FormDescription>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
+
                 <FormField
                   control={form.control}
                   name="isDividendReinvested"
@@ -296,7 +360,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
                       <FormItem>
                         <FormLabel>Reinvestment Price per Share</FormLabel>
                         <FormControl>
-                          <Input type="number" step="any" placeholder="0.00" {...field} />
+                          <Input type="number" step="any" placeholder="0.00" className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" {...field} />
                         </FormControl>
                         <FormDescription>
                           Price at which dividend was reinvested
@@ -309,32 +373,57 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
               </>
             ) : (
               <>
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantity</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="any" placeholder="0" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Price per Share</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="any" placeholder="0" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                 <div className="flex gap-4">
+                    <FormField
+                      control={form.control}
+                      name="quantity"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Quantity</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="any" placeholder="0" className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Price</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="any" placeholder="0" className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                 </div>
+                 
+                 <FormField
+                   control={form.control}
+                   name="exchangeRate"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>USD Exchange Rate (Optional)</FormLabel>
+                       <FormControl>
+                         <Input 
+                            type="number" 
+                            step="any" 
+                            placeholder={currentRate > 0 ? currentRate.toFixed(2) : "Fetching..."} 
+                            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            {...field} 
+                         />
+                       </FormControl>
+                       <FormDescription>
+                         Current exchange rate is selected by default. You can change it if you want.
+                       </FormDescription>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
               </>
             )}
 

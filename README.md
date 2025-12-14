@@ -21,6 +21,7 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - Automatic portfolio value calculations
 - Real-time profit/loss tracking
 - Currency-specific pricing
+- **Smart Exchange Rate Handling**: Automatic fetching of current USD/TRY rates with optional manual override for precise historical tracking.
 
 ### 📈 Interactive Dashboard
 - Dynamic portfolio distribution charts with Recharts
@@ -44,7 +45,7 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - **Monthly Income Matrix**: Grid view of income streams (dividends, rents, etc.)
 - **Multi-Currency Support**: 
   - Toggle between **TRY** and **USD** views instantly
-  - Automatic USD value calculation for all income entries
+  - **Smart Currency Conversion**: Automatic USD value calculation with customizable exchange rates
   - Historical data preserved with fixed exchange rates
 - **Multi-Year Tracking**: Support for years 2025-2036
 - **Detailed Breakdown**:
@@ -82,6 +83,7 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - Responsive design for all devices
 - Interactive charts and visualizations
 - Intuitive asset and transaction management
+- **Polished Inputs**: Clean numeric input fields preventing accidental value changes
 - Toast notifications for user feedback
 
 ## Tech Stack
@@ -184,7 +186,7 @@ A comprehensive portfolio management application built with Next.js, enabling us
 4. Enter transaction details:
    - For Buy/Sell: quantity, price per share, and date
    - For Dividend: total dividend amount received and date
-   - **Automatic Currency Conversion**: The system automatically fixes the USD equivalent of your transaction at the moment of entry.
+   - **Flexible Currency Conversion**: Automatic USD calculation using real-time rates, with the ability to manually adjust the exchange rate for historical accuracy.
 5. Submit to record the transaction
 
 ### Viewing Portfolio

@@ -16,7 +16,7 @@ import { SummaryCardsSkeleton, ChartSkeleton, TableSkeleton } from "@/components
 
 export function TotalPortfolioTab({ userId }: { userId: string }) {
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const { items, summary, isLoading: isPortfolioLoading } = usePortfolioStore()
+  const { items, summary, marketData, isLoading: isPortfolioLoading } = usePortfolioStore()
   const { transactions, isLoading: isTransactionsLoading, refreshTransactions, hasMore, fetchTransactions } = useTransactionStore()
 
   // Fetch transactions on mount
@@ -43,7 +43,7 @@ export function TotalPortfolioTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
-      {isPortfolioLoading ? <SummaryCardsSkeleton /> : <SummaryCards summary={summary} />}
+      {isPortfolioLoading ? <SummaryCardsSkeleton /> : <SummaryCards summary={summary} marketData={marketData} />}
       
       <div className={`grid gap-4 grid-cols-1 ${
         isPortfolioLoading ? 'md:grid-cols-2 lg:grid-cols-4' :

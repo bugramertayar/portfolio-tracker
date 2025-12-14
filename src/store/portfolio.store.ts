@@ -1,7 +1,15 @@
 import { create } from 'zustand';
 import { PortfolioItem, PortfolioSummary, AssetCategory } from '@/types/portfolio.types';
 import { FirestoreService } from '@/lib/firestore.service';
-import { getQuotesAction } from '@/app/actions/portfolio';
+import { getQuotesAction, getMarketDataAction } from '@/app/actions/portfolio';
+
+interface MarketData {
+  symbol: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  currency: string;
+}
 
 interface PortfolioState {
   items: PortfolioItem[];
@@ -12,6 +20,10 @@ interface PortfolioState {
   fetchPortfolio: (userId: string) => Promise<void>;
   refreshPrices: () => Promise<void>;
   exchangeRate: number;
+  marketData: {
+    bist100: MarketData | null;
+    usdTry: MarketData | null;
+  };
 }
 
 const initialSummary: PortfolioSummary = {
@@ -48,6 +60,10 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   error: null,
   summary: initialSummary,
   exchangeRate: 0,
+  marketData: {
+    bist100: null,
+    usdTry: null
+  },
 
   fetchPortfolio: async (userId: string) => {
     set({ isLoading: true, error: null });
@@ -71,18 +87,37 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
 
     try {
       const symbols = items.map(item => item.symbol);
-      // Add TRY=X to fetch USD/TRY exchange rate
-      symbols.push('TRY=X');
       
-      const response = await getQuotesAction(symbols);
+      // Fetch portfolio prices and market data in parallel
+      const [pricesResponse, marketDataResponse] = await Promise.all([
+        getQuotesAction(symbols),
+        getMarketDataAction(['XU100.IS', 'TRY=X'])
+      ]);
 
-      if (!response.success || !response.data) {
-        throw new Error(response.error || "Failed to fetch prices");
+      if (!pricesResponse.success || !pricesResponse.data) {
+        throw new Error(pricesResponse.error || "Failed to fetch prices");
       }
 
-      const prices = response.data;
-      const exchangeRate = prices['TRY=X'] || 0;
-      set({ exchangeRate });
+      const prices = pricesResponse.data;
+      let exchangeRate = get().exchangeRate;
+      let marketData = get().marketData;
+
+      if (marketDataResponse.success && marketDataResponse.data) {
+        const md = marketDataResponse.data;
+        const bist100 = md['XU100.IS'];
+        const usdTry = md['TRY=X'];
+
+        if (usdTry) {
+           exchangeRate = usdTry.price;
+        }
+
+        marketData = {
+          bist100: bist100 || null,
+          usdTry: usdTry || null
+        };
+        
+        set({ exchangeRate, marketData });
+      }
       
       // Update items with new prices and calculate values
       const updatedItems = items.map(item => {
