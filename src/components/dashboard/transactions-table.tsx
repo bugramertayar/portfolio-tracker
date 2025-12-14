@@ -65,13 +65,14 @@ export function TransactionsTable({
               <TableHead>Symbol</TableHead>
               <TableHead>Quantity</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Total</TableHead>
+              <TableHead>Total (TRY)</TableHead>
+              <TableHead>Total (USD)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center h-24">
+                <TableCell colSpan={7} className="text-center h-24">
                   No transactions found.
                 </TableCell>
               </TableRow>
@@ -96,6 +97,14 @@ export function TransactionsTable({
                       : formatCurrency(transaction.price, transaction.category === 'US_MARKETS' ? 'USD' : currency)}
                   </TableCell>
                   <TableCell>{formatCurrency(transaction.total || (transaction.price * transaction.quantity), transaction.category === 'US_MARKETS' ? 'USD' : currency)}</TableCell>
+                  <TableCell>
+                    {transaction.totalUsdValue 
+                      ? formatCurrency(transaction.totalUsdValue, 'USD') 
+                      : (transaction.category === 'US_MARKETS' 
+                          ? formatCurrency(transaction.total, 'USD') 
+                          : '-')
+                    }
+                  </TableCell>
                 </TableRow>
               ))
             )}

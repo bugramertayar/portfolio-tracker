@@ -10,7 +10,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { LayoutDashboard, TrendingUp, Wallet } from "lucide-react"
+import { LayoutDashboard, TrendingUp, Wallet, PiggyBank } from "lucide-react"
 
 export function SiteHeader() {
   const router = useRouter()
@@ -18,6 +18,7 @@ export function SiteHeader() {
   const isDashboard = pathname === "/dashboard"
   const isAnalytics = pathname === "/analytics"
   const isIncomeTracker = pathname === "/income-tracker"
+  const isInvestmentTracker = pathname === "/investment-tracker"
   const isAuthPage = pathname === "/login" || pathname === "/register"
 
   if (isAuthPage) {
@@ -71,16 +72,16 @@ export function SiteHeader() {
             <TooltipTrigger asChild>
               <Button 
                 asChild
-                variant={isAnalytics ? "secondary" : "ghost"} 
+                variant={isInvestmentTracker ? "secondary" : "ghost"} 
                 size="icon" 
                 className="h-10 w-10"
               >
-                <Link href="/analytics">
-                  <TrendingUp className="h-5 w-5" />
+                <Link href="/investment-tracker">
+                  <PiggyBank className="h-5 w-5" />
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">Portfolio Analytics</TooltipContent>
+            <TooltipContent side="right">Investment Tracker</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -97,6 +98,22 @@ export function SiteHeader() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Income Tracker</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                asChild
+                variant={isAnalytics ? "secondary" : "ghost"} 
+                size="icon" 
+                className="h-10 w-10"
+              >
+                <Link href="/analytics">
+                  <TrendingUp className="h-5 w-5" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Portfolio Analytics</TooltipContent>
           </Tooltip>
         </nav>
       </div>

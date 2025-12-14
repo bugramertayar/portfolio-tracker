@@ -187,6 +187,7 @@ export const FirestoreService = {
               year: incomeDateObj.getFullYear(),
               month: incomeDateObj.getMonth(),
               amount: transactionData.total,
+              amountUsd: (transactionData as any).totalUsdValue, // Added: Pass totalUsdValue to income record
               category: "Dividend",
               description: `Dividend from ${transactionData.symbol}` + (transactionData.isDividendReinvested ? " (Reinvested)" : ""),
               company: transactionData.symbol,

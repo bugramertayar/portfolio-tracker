@@ -29,6 +29,7 @@ export default function IncomeTrackerPage() {
         router.push("/login")
       } else {
         setUserId(currentUser.uid)
+        // Migration is complete, no need to check every time
         fetchIncomes(currentUser.uid)
         setLoading(false)
       }

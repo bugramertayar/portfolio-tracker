@@ -42,14 +42,19 @@ A comprehensive portfolio management application built with Next.js, enabling us
 
 ### 💰 Income Tracker
 - **Monthly Income Matrix**: Grid view of income streams (dividends, rents, etc.)
+- **Multi-Currency Support**: 
+  - Toggle between **TRY** and **USD** views instantly
+  - Automatic USD value calculation for all income entries
+  - Historical data preserved with fixed exchange rates
 - **Multi-Year Tracking**: Support for years 2025-2036
 - **Detailed Breakdown**:
-  - Monthly and yearly totals
+  - Monthly and yearly totals in selected currency
   - Category-based income tracking
-  - Tooltips with detailed income sources
+  - Tooltips displaying both TRY and USD values simultaneously
   - Company/asset tracking for income sources
 - **Income History Table**:
   - Comprehensive view of all income records
+  - **Dual Currency Columns**: View amounts in both TRY and USD
   - Pagination support for large datasets
   - Sortable columns for easy filtering
 - **Automatic Dividend Integration**:
@@ -60,6 +65,17 @@ A comprehensive portfolio management application built with Next.js, enabling us
   - Edit/Delete individual entries
   - Company selection from portfolio assets
   - Real-time updates
+
+### 🐷 Investment Tracker
+- **Capital Evolution Matrix**: 
+  - Track total invested capital (Buys) over time
+  - Dynamic yearly and monthly breakdown
+  - **Multi-Currency View**: Toggle between TRY and USD to see capital injection in hard currency
+- **Investment History Table**:
+  - Dedicated table for "Buy" transactions
+  - Tracks detailed history of capital additions
+  - **Dual Currency Columns**: See the exact USD value of investments at the time of purchase
+  - Pagination and sorting for easier management
 
 ### 🎨 Modern UI/UX
 - Dark/Light theme support
@@ -91,6 +107,9 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - **Date Handling**: date-fns
 - **Notifications**: Sonner
 - **Theme**: next-themes
+- **Currency Handling**: 
+  - Live USD/TRY exchange rate fetching
+  - Server Actions for secure API communication
 
 ## Getting Started
 
@@ -165,6 +184,7 @@ A comprehensive portfolio management application built with Next.js, enabling us
 4. Enter transaction details:
    - For Buy/Sell: quantity, price per share, and date
    - For Dividend: total dividend amount received and date
+   - **Automatic Currency Conversion**: The system automatically fixes the USD equivalent of your transaction at the moment of entry.
 5. Submit to record the transaction
 
 ### Viewing Portfolio
@@ -213,6 +233,9 @@ portfolio-tracker/
 │   │   │   ├── income-matrix.tsx
 │   │   │   ├── income-history-table.tsx
 │   │   │   └── income-details-dialog.tsx
+│   │   ├── investment/      # Investment tracker components
+│   │   │   ├── investment-tracker-matrix.tsx
+│   │   │   └── investment-history-table.tsx
 │   │   ├── ui/              # Reusable UI components (Radix UI)
 │   │   ├── site-header.tsx  # Main navigation header
 │   │   ├── mode-toggle.tsx  # Dark/Light theme toggle

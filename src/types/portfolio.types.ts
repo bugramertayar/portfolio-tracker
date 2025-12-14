@@ -24,6 +24,7 @@ export interface Transaction {
   category: AssetCategory;
   createdAt: number;
   isDividendReinvested?: boolean; // Only for DIVIDEND type - tracks if dividend was reinvested
+  totalUsdValue?: number; // Added: Total value in USD at the time of transaction
 }
 
 export interface PortfolioItem {

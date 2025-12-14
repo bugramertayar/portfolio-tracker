@@ -125,6 +125,30 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         total = quantity * price;
       }
 
+      let totalUsdValue: number | undefined;
+
+      // Calculate USD Value for ALL transactions
+      try {
+        // If the asset is already in USD (US Markets), the total is already in USD.
+        // Otherwise (BIST100 or others assumed in TRY), convert to USD.
+        if (selectedAsset?.category === "US_MARKETS") {
+          totalUsdValue = total;
+        } else {
+          const { getExchangeRateAction } = await import("@/app/actions/portfolio");
+          const rateRes = await getExchangeRateAction();
+          const usdTryRate = rateRes.success ? rateRes.data : undefined;
+          
+          // USDTRY=X is ~35 (1 USD = 35 TRY)
+          // So Total TRY / Rate = Total USD
+          if (usdTryRate && usdTryRate > 0) {
+            totalUsdValue = total / (usdTryRate as number);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to calculate USD value:", error);
+        // We don't block the transaction if this fails, just proceed without usd value
+      }
+
       const transactionData = {
         userId,
         assetId: values.symbol,
@@ -136,6 +160,7 @@ export function AddTransactionDialog({ userId }: { userId: string }) {
         category: selectedAsset.category,
         date: values.date.getTime(),
         isDividendReinvested: values.type === "DIVIDEND" ? values.isDividendReinvested : undefined,
+        totalUsdValue,
       }
 
       const { FirestoreService } = await import("@/lib/firestore.service");

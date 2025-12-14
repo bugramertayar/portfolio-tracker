@@ -11,8 +11,11 @@ import {
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { IncomeDetailsDialog } from "./income-details-dialog"
 import { AddIncomeDialog } from "./add-income-dialog"
+import { useEffect } from "react" // Re-add useEffect
 
 interface IncomeMatrixProps {
   data: IncomeEntry[];
@@ -28,13 +31,23 @@ const MONTHS = [
 export function IncomeMatrix({ data, onEdit, userId }: IncomeMatrixProps) {
   const [selectedCell, setSelectedCell] = useState<{year: number, month: number, entries: IncomeEntry[]} | null>(null);
   const [addIncomeCell, setAddIncomeCell] = useState<{year: number, month: number} | null>(null);
+  const [currency, setCurrency] = useState<"TRY" | "USD">("TRY");
+  const [usdRate, setUsdRate] = useState<number>(35);
+
+  useEffect(() => {
+    // Fetch rate once for fallback calculations
+    import("@/app/actions/portfolio").then(mod => {
+        mod.getExchangeRateAction().then(res => {
+            if (res.success && res.data) setUsdRate(res.data as number);
+        });
+    });
+  }, []);
 
   // Get unique years from data
   const dataYears = Array.from(new Set(data.map(d => d.year)));
   const minYear = 2025;
-  const maxYear = Math.max(2036, ...dataYears); // Ensure we show at least up to 2036
+  const maxYear = Math.max(2036, ...dataYears); 
   
-  // Create array of years from minYear to maxYear (Ascending order: 2025, 2026, ...)
   const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
 
   // Group data by year and month
@@ -42,26 +55,42 @@ export function IncomeMatrix({ data, onEdit, userId }: IncomeMatrixProps) {
     acc[year] = {};
     MONTHS.forEach((_, monthIndex) => {
       const entries = data.filter(d => d.year === year && d.month === monthIndex);
-      const total = entries.reduce((sum, entry) => sum + entry.amount, 0);
+      const total = entries.reduce((sum, entry) => {
+         if (currency === 'USD') {
+             // Use amountUsd if exists, else fallback
+             if (entry.amountUsd) return sum + entry.amountUsd;
+             return sum + (entry.amount / usdRate);
+         }
+         return sum + entry.amount;
+      }, 0);
       acc[year][monthIndex] = { total, entries };
     });
     return acc;
   }, {} as Record<number, Record<number, { total: number, entries: IncomeEntry[] }>>);
 
-  // Calculate yearly totals
   const yearlyTotals = years.reduce((acc, year) => {
     acc[year] = Object.values(matrix[year]).reduce((sum, { total }) => sum + total, 0);
     return acc;
   }, {} as Record<number, number>);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amount);
+  const formatCurrency = (amount: number, code: "TRY" | "USD" = currency) => {
+    return new Intl.NumberFormat(code === 'TRY' ? 'tr-TR' : 'en-US', { style: 'currency', currency: code }).format(amount);
   };
 
   return (
     <Card className="w-full">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle>Income Matrix</CardTitle>
+        <div className="flex items-center space-x-2">
+           <Label htmlFor="income-currency-mode" className="text-sm font-medium">
+             {currency}
+           </Label>
+           <Switch 
+             id="income-currency-mode"
+             checked={currency === 'USD'}
+             onCheckedChange={(checked) => setCurrency(checked ? 'USD' : 'TRY')}
+           />
+        </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className="w-full whitespace-nowrap rounded-md border">
@@ -111,22 +140,30 @@ export function IncomeMatrix({ data, onEdit, userId }: IncomeMatrixProps) {
                           </div>
                         </TooltipTrigger>
                         {hasData && (
-                          <TooltipContent>
+                          <TooltipContent className="min-w-[300px]">
                             <div className="space-y-1">
-                              <p className="font-bold border-b pb-1 mb-1">Total: {formatCurrency(total)}</p>
-                              {entries.map((entry) => (
-                                <div key={entry.id} className="text-xs flex justify-between gap-4">
-                                  <span>
-                                    {entry.category}
-                                    {entry.company && (
-                                      <span className="text-muted-foreground ml-1">
-                                        ({entry.company})
+                              <p className="font-bold border-b pb-1 mb-1 flex justify-between">
+                                  <span>Total:</span>
+                                  <span>{formatCurrency(total)}</span>
+                              </p>
+                              <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-muted-foreground mb-1">
+                                  <span className="col-span-2">Source</span>
+                                  <span className="text-right">TRY</span>
+                                  <span className="text-right">USD</span>
+                              </div>
+                              {entries.map((entry) => {
+                                 const usdVal = entry.amountUsd || (entry.amount / usdRate);
+                                 return (
+                                    <div key={entry.id} className="grid grid-cols-4 gap-2 text-xs border-b border-muted/50 last:border-0 pb-1">
+                                      <span className="col-span-2 truncate">
+                                        {entry.category}
+                                        {entry.company && <span className="text-muted-foreground ml-1">({entry.company})</span>}
                                       </span>
-                                    )}
-                                  </span>
-                                  <span>{formatCurrency(entry.amount)}</span>
-                                </div>
-                              ))}
+                                      <span className="text-right whitespace-nowrap">{formatCurrency(entry.amount, 'TRY')}</span>
+                                      <span className="text-right whitespace-nowrap">{formatCurrency(usdVal, 'USD')}</span>
+                                    </div>
+                                 );
+                              })}
                             </div>
                           </TooltipContent>
                         )}

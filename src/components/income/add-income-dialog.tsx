@@ -98,12 +98,27 @@ export function AddIncomeDialog({ userId, onSuccess, initialYear, initialMonth, 
     try {
       const amount = parseFloat(values.amount);
       
+      // Calculate USD Amount
+      let amountUsd = 0;
+      try {
+        const { getExchangeRateAction } = await import("@/app/actions/portfolio");
+        const rateRes = await getExchangeRateAction();
+        // Assuming manual input is always TRY for now as no currency selector exists in this dialog
+        // If we want to be safe, we could assume TRY if no currency field
+        if (rateRes.success && rateRes.data) {
+           amountUsd = amount / (rateRes.data as number);
+        }
+      } catch (e) {
+        console.error("Failed to fetch rate for income", e);
+      }
+
       // Add income entries for each selected month
       const promises = values.months.map(month => 
         FirestoreService.addIncome(userId, {
           year: parseInt(values.year),
           month,
           amount,
+          amountUsd: amountUsd > 0 ? amountUsd : undefined,
           category: values.category,
           description: values.description,
           company: values.category === "Dividend" ? values.company : undefined,

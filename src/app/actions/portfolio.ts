@@ -30,3 +30,14 @@ export async function getHistoricalPricesAction(symbol: string, period1: Date, p
     return { success: false, error: error.message };
   }
 }
+
+
+export async function getExchangeRateAction() {
+  try {
+    const rate = await YahooFinanceService.getPrice("USDTRY=X");
+    return { success: true, data: rate };
+  } catch (error: any) {
+    console.error("Server Action Error (Exchange Rate):", error);
+    return { success: false, error: error.message };
+  }
+}

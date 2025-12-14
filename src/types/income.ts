@@ -6,6 +6,7 @@ export interface IncomeEntry {
   year: number;
   month: number; // 0-11 for Jan-Dec
   amount: number;
+  amountUsd?: number; // Added: USD equivalent
   category: string;
   description?: string;
   company?: string;
