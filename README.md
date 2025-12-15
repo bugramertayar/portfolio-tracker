@@ -78,6 +78,21 @@ A comprehensive portfolio management application built with Next.js, enabling us
   - **Dual Currency Columns**: See the exact USD value of investments at the time of purchase
   - Pagination and sorting for easier management
 
+### 🎯 Goals & Targets
+- **Interactive Goal Setting**: 
+  - Define financial milestones for specific asset classes
+  - Supported Categories: 'BIST100', 'US STOCKS', 'PRECIOUS METALS', 'EUROBOND', 'MUTUAL FUNDS'
+- **Smart Progress Tracking**:
+  - **Unified USD Currency**: Automatically normalizes all assets (TRY) to USD for consistent target tracking
+  - **Real-Time Visualization**: Dynamic circular progress charts (Pie Charts) and percentage bars
+  - **Live Exchange Rate Integration**: Uses real-time USD/TRY rates to convert local assets 'on-the-fly'
+- **Dashboard Summary**:
+  - Total Target Value vs. Total Current Portfolio Value
+  - Overall completion percentage
+- **Management**:
+  - Add, Edit, and Delete goals easily
+  - Visual feedback on goal completion
+
 ### 🎨 Modern UI/UX
 - Dark/Light theme support
 - Responsive design for all devices
@@ -85,6 +100,7 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - Intuitive asset and transaction management
 - **Polished Inputs**: Clean numeric input fields preventing accidental value changes
 - Toast notifications for user feedback
+- **Cyberpunk Theme**: Exclusive high-contrast neon theme for immersive experience
 
 ## Tech Stack
 
@@ -201,6 +217,15 @@ A comprehensive portfolio management application built with Next.js, enabling us
 - Review recent transactions (Buy/Sell/Dividend)
 - Use the refresh button to update real-time prices
 
+### Tracking Goals
+1. Navigate to the **Goals** page via the target icon in the header
+2. **Set a Target**:
+   - Choose a category (e.g., US Stocks)
+   - Enter your target amount in **USD**
+3. **Monitor Progress**:
+   - See your current progress bar and percentage
+   - Assets in different currencies (e.g., BIST100 in TRY) are automatically converted to USD for unified tracking.
+
 ## Project Structure
 
 ```
@@ -213,6 +238,8 @@ portfolio-tracker/
 │   │   ├── analytics/       # Portfolio analytics page
 │   │   ├── dashboard/       # Main dashboard page
 │   │   ├── income-tracker/  # Income tracker page
+│   │   ├── investment-tracker/ # Investment tracker page
+│   │   ├── goals/           # Goals tracking page (New)
 │   │   ├── actions/         # Server actions
 │   │   ├── layout.tsx       # Root layout
 │   │   ├── page.tsx         # Landing page
@@ -238,7 +265,13 @@ portfolio-tracker/
 │   │   ├── investment/      # Investment tracker components
 │   │   │   ├── investment-tracker-matrix.tsx
 │   │   │   └── investment-history-table.tsx
+│   │   ├── goals/           # Goals components (New)
+│   │   │   ├── add-goal-form.tsx
+│   │   │   ├── goal-card.tsx
+│   │   │   └── goals-page-content.tsx
 │   │   ├── ui/              # Reusable UI components (Radix UI)
+│   │   │   ├── alert-dialog.tsx
+│   │   │   └── ...
 │   │   ├── site-header.tsx  # Main navigation header
 │   │   ├── mode-toggle.tsx  # Dark/Light theme toggle
 │   │   └── theme-provider.tsx
@@ -322,6 +355,16 @@ incomes/{incomeId}
 - description: string (optional)
 - company: string (optional, portfolio asset symbol)
 - createdAt: timestamp
+
+**goals** collection:
+```
+goals/{goalId}
+- userId: string
+- category: 'BIST100' | 'US STOCKS' | 'PRECIOUS METALS' | 'EUROBOND' | 'MUTUAL FUNDS'
+- targetAmount: number (in USD)
+- createdAt: timestamp
+- updatedAt: timestamp
+```
 ```
 
 ### Security Rules

@@ -20,7 +20,8 @@ import { db } from "./firebase";
 import { 
   PortfolioItem, 
   Transaction, 
-  AssetCategory 
+  AssetCategory,
+  Goal
 } from "@/types/portfolio.types";
 import { IncomeEntry } from "@/types/income";
 
@@ -30,6 +31,7 @@ const PORTFOLIOS_COLLECTION = "portfolios";
 const TRANSACTIONS_COLLECTION = "transactions";
 const QUOTES_COLLECTION = "quotes";
 const INCOMES_COLLECTION = "incomes";
+const GOALS_COLLECTION = "goals";
 
 export const FirestoreService = {
   // Portfolio Operations
@@ -384,6 +386,67 @@ export const FirestoreService = {
       await deleteDoc(docRef);
     } catch (error) {
       console.error("Error deleting income:", error);
+      throw error;
+    }
+  },
+
+  // Goals Operations
+  async addGoal(userId: string, goalData: Omit<Goal, "id" | "createdAt" | "updatedAt" | "userId">): Promise<void> {
+    try {
+      if (!userId) throw new Error("User ID is required");
+      
+      const docRef = doc(collection(db, USERS_COLLECTION, userId, GOALS_COLLECTION));
+      
+      await setDoc(docRef, {
+        ...goalData,
+        userId,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      console.error("Error adding goal:", error);
+      throw error;
+    }
+  },
+
+  async getGoals(userId: string): Promise<Goal[]> {
+    try {
+      const q = query(
+        collection(db, USERS_COLLECTION, userId, GOALS_COLLECTION),
+        orderBy("createdAt", "desc")
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      } as Goal));
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      throw error;
+    }
+  },
+
+  async updateGoal(userId: string, goalId: string, goalData: Partial<Omit<Goal, "id" | "userId" | "createdAt">>): Promise<void> {
+    try {
+      const docRef = doc(db, USERS_COLLECTION, userId, GOALS_COLLECTION, goalId);
+      
+      await updateDoc(docRef, {
+        ...goalData,
+        updatedAt: Date.now()
+      });
+    } catch (error) {
+      console.error("Error updating goal:", error);
+      throw error;
+    }
+  },
+
+  async deleteGoal(userId: string, goalId: string): Promise<void> {
+    try {
+      const docRef = doc(db, USERS_COLLECTION, userId, GOALS_COLLECTION, goalId);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error("Error deleting goal:", error);
       throw error;
     }
   }

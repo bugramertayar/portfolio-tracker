@@ -67,3 +67,14 @@ export interface PortfolioSummary {
   usMarket: CategorySummary;
   preciousMetals: CategorySummary;
 }
+
+export type GoalCategory = 'BIST100' | 'US STOCKS' | 'PRECIOUS METALS' | 'EUROBOND' | 'MUTUAL FUNDS';
+
+export interface Goal {
+  id: string;
+  userId: string;
+  category: GoalCategory;
+  targetAmount: number; // in USD
+  createdAt: number;
+  updatedAt: number;
+}
